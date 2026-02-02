@@ -1,0 +1,74 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    name: build-test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            generator: "Ninja"
+            build_type: "Release"
+          - os: macos-latest
+            generator: "Ninja"
+            build_type: "Release"
+          - os: windows-latest
+            generator: "Visual Studio 17 2022"
+            build_type: "Release"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Qt install (cached)
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          cache: true
+
+      # Ninja for Linux/macOS (Windows uses VS generator here)
+      - name: Install Ninja (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ninja-build
+
+      - name: Install Ninja (macOS)
+        if: runner.os == 'macOS'
+        run: brew install ninja
+
+      - name: Configure
+        run: >
+          cmake -S . -B build
+          -G "${{ matrix.generator }}"
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure -C ${{ matrix.build_type }}
+
+  format:
+    name: format (clang-format)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install -y clang-format
+      - name: Check formatting (no changes allowed)
+        run: |
+          if [ ! -f .clang-format ]; then
+            echo ".clang-format missing"; exit 1;
+          fi
+          FILES=$(find src include app tests -type f \( -name "*.cpp" -o -name "*.hpp" -o -name "*.h" \) 2>/dev/null || true)
+          if [ -z "$FILES" ]; then
+            echo "No source files yet, skipping format check."; exit 0;
+          fi
+          clang-format -i $FILES
+          git diff --exit-code

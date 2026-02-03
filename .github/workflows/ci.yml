@@ -42,24 +42,18 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # Configure / Build / Test (run explicitly from repo root)
+      # Configure: FORCE source dir to repo root so presets are resolved correctly
       - name: Configure (CMake)
-        working-directory: ${{ github.workspace }}
-        run: cmake --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
+        run: cmake -S "${{ github.workspace }}" --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
       - name: Build
-        working-directory: ${{ github.workspace }}
         run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
-      # Linux/macOS (single-config)
       - name: Run tests (Linux/macOS)
         if: runner.os != 'Windows'
-        working-directory: ${{ github.workspace }}
-        run: ctest --preset release --output-on-failure
+        run: ctest --test-dir "${{ github.workspace }}/build/release" --output-on-failure
 
-      # Windows (multi-config) - MUST specify configuration matching your build
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
-        working-directory: ${{ github.workspace }}
-        run: ctest --preset windows-release -C Release --output-on-failure
+        run: ctest --test-dir "${{ github.workspace }}/build/windows-release" -C Release --output-on-failure
 

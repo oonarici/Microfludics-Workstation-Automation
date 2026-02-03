@@ -51,13 +51,13 @@ jobs:
         run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
       # Linux/macOS (single-config) - no -C needed
-	- name: Run tests (Linux/macOS)
-  	if: runner.os != 'Windows'
-  	run: ctest --preset release --output-on-failure
+      - name: Run tests (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: ctest --preset release --output-on-failure
 
-     # Windows (multi-config) - MUST specify configuration
-	- name: Run tests (Windows)
-  	if: runner.os == 'Windows'
-  	run: ctest --preset windows-release -C Debug --output-on-failure
+      # Windows (multi-config) - MUST specify configuration
+      - name: Run tests (Windows)
+        if: runner.os == 'Windows'
+        run: ctest --preset windows-release -C Debug --output-on-failure
 
 

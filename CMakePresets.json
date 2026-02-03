@@ -1,0 +1,34 @@
+{
+"version": 3,
+"configurePresets": [
+{
+"name": "base",
+"hidden": true,
+"generator": "Ninja",
+"binaryDir": "build/${presetName}",
+"cacheVariables": {
+"CMAKE_BUILD_TYPE": "Release"
+}
+},
+{
+"name": "release",
+"inherits": "base"
+},
+{
+"name": "windows-release",
+"generator": "Visual Studio 17 2022",
+"binaryDir": "build/windows-release",
+"cacheVariables": {
+"CMAKE_BUILD_TYPE": "Release"
+}
+}
+],
+"buildPresets": [
+{ "name": "release", "configurePreset": "release" },
+{ "name": "windows-release", "configurePreset": "windows-release" }
+],
+"testPresets": [
+{ "name": "release", "configurePreset": "release" },
+{ "name": "windows-release", "configurePreset": "windows-release" }
+]
+}

@@ -89,3 +89,6 @@ Thumbs.db
 .venv/
 build*/
 *.tgz
+CMakeUserPresets.json
+build/
+build_offline_test/

@@ -52,3 +52,36 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
+
+
+---
+
+# 3️⃣ `.gitignore` (CMake + Qt + IDE safe)
+
+```gitignore
+# Build
+/build/
+/out/
+/cmake-build-*/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+
+# Qt
+*.qmake.stash
+*.pro.user
+*.qmlc
+
+# IDEs
+.idea/
+.vscode/
+*.user
+*.user.*
+*.autosave
+
+# OS
+.DS_Store
+Thumbs.db

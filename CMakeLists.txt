@@ -6,10 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 enable_testing()
 
-#---- Qt (Qt5 / Qt6 compatible) ----
-
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
+#---- Qt ----
+find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 #---- Core library ----
 
@@ -23,7 +21,7 @@ target_include_directories(core PUBLIC include)
 add_executable(app
 app/main.cpp
 )
-target_link_libraries(app PRIVATE core Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(app PRIVATE core Qt6::Widgets)
 
 #---- Tests ----
 

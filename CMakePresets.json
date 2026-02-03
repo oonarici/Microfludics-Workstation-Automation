@@ -1,35 +1,35 @@
 {
-"version": 3,
-"configurePresets": [
-{
-"name": "base",
-"hidden": true,
-"generator": "Ninja",
-"binaryDir": "build/${presetName}",
-"cacheVariables": {
-  "CMAKE_BUILD_TYPE": "Release",
-  "Qt6_DIR": "/opt/Qt/6.10.2/gcc_64/lib/cmake/Qt6"
-}
-},
-{
-"name": "release",
-"inherits": "base"
-},
-{
-"name": "windows-release",
-"generator": "Visual Studio 17 2022",
-"binaryDir": "build/windows-release",
-"cacheVariables": {
-  "CMAKE_BUILD_TYPE": "Release"
-}
-}
-],
-"buildPresets": [
-{ "name": "release", "configurePreset": "release" },
-{ "name": "windows-release", "configurePreset": "windows-release" }
-],
-"testPresets": [
-{ "name": "release", "configurePreset": "release" },
-{ "name": "windows-release", "configurePreset": "windows-release" }
-]
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
+      }
+    },
+    {
+      "name": "release",
+      "inherits": "base"
+    },
+    {
+      "name": "windows-release",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/windows-release",
+      "cacheVariables": {
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
+      }
+    }
+  ],
+  "buildPresets": [
+    { "name": "release", "configurePreset": "release" },
+    { "name": "windows-release", "configurePreset": "windows-release", "configuration": "Release" }
+  ],
+  "testPresets": [
+    { "name": "release", "configurePreset": "release" },
+    { "name": "windows-release", "configurePreset": "windows-release", "configuration": "Release" }
+  ]
 }

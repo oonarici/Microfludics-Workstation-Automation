@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [development]
 
-
 jobs:
   build-and-test:
     name: Build & Test (${{ matrix.os }})
@@ -43,20 +42,24 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # Configure / Build / Test
+      # Configure / Build / Test (run explicitly from repo root)
       - name: Configure (CMake)
+        working-directory: ${{ github.workspace }}
         run: cmake --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
       - name: Build
+        working-directory: ${{ github.workspace }}
         run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
-      # Linux/macOS (single-config) - no -C needed
+      # Linux/macOS (single-config)
       - name: Run tests (Linux/macOS)
         if: runner.os != 'Windows'
+        working-directory: ${{ github.workspace }}
         run: ctest --preset release --output-on-failure
 
-      # Windows (multi-config) - MUST specify configuration
+      # Windows (multi-config) - MUST specify configuration matching your build
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
-        run: ctest --preset windows-release -C Debug --output-on-failure
+        working-directory: ${{ github.workspace }}
+        run: ctest --preset windows-release -C Release --output-on-failure
 

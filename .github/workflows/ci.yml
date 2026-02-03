@@ -39,19 +39,18 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # IMPORTANT: run from repo root (no working-directory: build)
+      # Force source dir = repo root so presets are found correctly
       - name: Configure (CMake)
-  	run: cmake -S . --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
+        run: cmake -S . --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
       - name: Build
-  	run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
+        run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
       - name: Run tests (Linux/macOS)
-  	if: runner.os != 'Windows'
-  	run: ctest --preset release --output-on-failure
+        if: runner.os != 'Windows'
+        run: ctest --preset release --output-on-failure
 
       - name: Run tests (Windows)
-  	if: runner.os == 'Windows'
-  	run: ctest --preset windows-release -C Release --output-on-failure
-
+        if: runner.os == 'Windows'
+        run: ctest --preset windows-release -C Release --output-on-failure
 

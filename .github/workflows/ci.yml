@@ -60,4 +60,3 @@ jobs:
         if: runner.os == 'Windows'
         run: ctest --preset windows-release -C Debug --output-on-failure
 
-

@@ -85,3 +85,7 @@ CTestTestfile.cmake
 # OS
 .DS_Store
 Thumbs.db
+
+.venv/
+build*/
+*.tgz

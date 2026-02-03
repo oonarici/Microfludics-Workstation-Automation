@@ -8,7 +8,7 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
+        "CMAKE_PREFIX_PATH": "${env:QT_ROOT_DIR}"
       }
     },
     {
@@ -20,7 +20,7 @@
       "generator": "Visual Studio 17 2022",
       "binaryDir": "${sourceDir}/build/windows-release",
       "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
+        "CMAKE_PREFIX_PATH": "${env:QT_ROOT_DIR}"
       }
     }
   ],

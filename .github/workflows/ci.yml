@@ -27,7 +27,6 @@ jobs:
           cache: true
           arch: ${{ runner.os == 'Windows' && 'win64_msvc2022_64' || '' }}
 
-      # Ninja (only needed if your presets use Ninja)
       - name: Install Ninja (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ninja-build
@@ -40,11 +39,12 @@ jobs:
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
+      # IMPORTANT: run from repo root (no working-directory: build)
       - name: Configure (CMake)
         run: cmake --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
       - name: Build
-        run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
+        run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }} ${{ runner.os == 'Windows' && '--config Release' || '' }}
 
       - name: Run tests (Linux/macOS)
         if: runner.os != 'Windows'

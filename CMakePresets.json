@@ -1,35 +1,66 @@
 {
-"version": 3,
-"configurePresets": [
-{
-"name": "base",
-"hidden": true,
-"generator": "Ninja",
-"binaryDir": "build/${presetName}",
-"cacheVariables": {
-  "CMAKE_BUILD_TYPE": "Release",
-  "Qt6_DIR": "/opt/Qt/6.10.2/gcc_64/lib/cmake/Qt6"
-}
-},
-{
-"name": "release",
-"inherits": "base"
-},
-{
-"name": "windows-release",
-"generator": "Visual Studio 17 2022",
-"binaryDir": "build/windows-release",
-"cacheVariables": {
-  "CMAKE_BUILD_TYPE": "Release"
-}
-}
-],
-"buildPresets": [
-{ "name": "release", "configurePreset": "release" },
-{ "name": "windows-release", "configurePreset": "windows-release" }
-],
-"testPresets": [
-{ "name": "release", "configurePreset": "release" },
-{ "name": "windows-release", "configurePreset": "windows-release" }
-]
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
+        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release (Linux/macOS)",
+      "inherits": "base",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-release",
+      "displayName": "Release (Windows, VS2022)",
+      "inherits": "base",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/windows-release",
+      "cacheVariables": {
+        "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "release",
+      "configurePreset": "release"
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "configuration": "Release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "release",
+      "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-release",
+      "configurePreset": "windows-release",
+      "configuration": "Debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
 }

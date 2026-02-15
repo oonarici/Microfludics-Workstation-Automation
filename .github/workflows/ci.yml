@@ -20,6 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Install Qt (pick correct arch on Windows)
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
@@ -27,6 +28,7 @@ jobs:
           cache: true
           arch: ${{ runner.os == 'Windows' && 'win64_msvc2022_64' || '' }}
 
+      # Ensure Ninja exists (Linux/macOS)
       - name: Install Ninja (Linux)
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y ninja-build
@@ -35,17 +37,25 @@ jobs:
         if: runner.os == 'macOS'
         run: brew install ninja
 
+      # Ensure MSVC toolchain is active on Windows
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
 
-      # Force source dir = repo root so presets are found correctly
+      # Configure
       - name: Configure (CMake)
-        run: cmake -S . --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
+        run: cmake --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
 
-      - name: Build
-        run: cmake --build --preset ${{ runner.os == 'Windows' && 'windows-release' || 'release' }}
+      # Build
+      - name: Build (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: cmake --build --preset release
 
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build --preset windows-release --config Release
+
+      # Test
       - name: Run tests (Linux/macOS)
         if: runner.os != 'Windows'
         run: ctest --preset release --output-on-failure
@@ -53,4 +63,3 @@ jobs:
       - name: Run tests (Windows)
         if: runner.os == 'Windows'
         run: ctest --preset windows-release -C Release --output-on-failure
-

@@ -16,6 +16,16 @@ Makefile
 conanbuildinfo.*
 conaninfo.txt
 graph_info.json
+conanfile.lock
+.conan2/
+.conan2_tmp/
+conanbuild.bat
+conanrun.bat
+conanbuildenv-*.bat
+conanrunenv-*.bat
+deactivate_conanbuild.bat
+deactivate_conanrun.bat
+CMakeUserPresets.json
 
 # Binaries and libraries
 *.o
@@ -34,6 +44,10 @@ graph_info.json
 *.swp
 *.swo
 .DS_Store
+$null
+_debug_vs.bat
+cmake_list.json
+cmake_list_rev.json
 
 # Test and coverage artifacts
 *.gcda

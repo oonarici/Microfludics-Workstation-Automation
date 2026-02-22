@@ -15,18 +15,40 @@
         "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
         "MICROFLUIDICS_ENABLE_QT": "ON"
       }
+    },
+    {
+      "name": "windows-msvc-conan",
+      "displayName": "Windows MSVC (Conan Toolchain)",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/windows-msvc",
+      "toolchainFile": "${sourceDir}/build/windows-msvc/conan_toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
+        "MICROFLUIDICS_ENABLE_QT": "ON"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "windows-msvc",
       "configurePreset": "windows-msvc"
+    },
+    {
+      "name": "windows-msvc-conan",
+      "configurePreset": "windows-msvc-conan"
     }
   ],
   "testPresets": [
     {
       "name": "windows-msvc",
       "configurePreset": "windows-msvc",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "windows-msvc-conan",
+      "configurePreset": "windows-msvc-conan",
       "output": {
         "outputOnFailure": true
       }

@@ -1,9 +1,9 @@
 [requires]
-qt/6.5.3
+
+[tool_requires]
+cmake/[>=3.24]
+ninja/[>=1.11]
 
 [generators]
 CMakeDeps
 CMakeToolchain
-
-[options]
-qt/*:shared=True

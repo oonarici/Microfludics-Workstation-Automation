@@ -1,94 +1,42 @@
-# C++ objects and libs
-*.slo
-*.lo
-*.o
-*.a
-*.la
-*.lai
-*.so
-*.so.*
-*.dll
-*.dylib
-
-# Qt-es
-object_script.*.Release
-object_script.*.Debug
-*_plugin_import.cpp
-/.qmake.cache
-/.qmake.stash
-*.pro.user
-*.pro.user.*
-*.qbs.user
-*.qbs.user.*
-*.moc
-moc_*.cpp
-moc_*.h
-qrc_*.cpp
-ui_*.h
-*.qmlc
-*.jsc
-Makefile*
-*build-*
-*.qm
-*.prl
-
-# Qt unit tests
-target_wrapper.*
-
-# QtCreator
-*.autosave
-
-# QtCreator Qml
-*.qmlproject.user
-*.qmlproject.user.*
-
-# QtCreator CMake
-CMakeLists.txt.user*
-
-# QtCreator 4.8< compilation database
-compile_commands.json
-
-# QtCreator local machine specific files for imported projects
-*creator.user*
-
-*_qmlcache.qrc
-
-
----
-
-# 3️⃣ `.gitignore` (CMake + Qt + IDE safe)
-
-```gitignore
-# Build
+# Build directories
 /build/
-/out/
-/cmake-build-*/
+/build-*/
+out/
 
-# CMake
+# CMake generated files
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+compile_commands.json
 CTestTestfile.cmake
+Testing/
+Makefile
 
-# Qt
-*.qmake.stash
-*.pro.user
-*.qmlc
+# Conan generated files
+conanbuildinfo.*
+conaninfo.txt
+graph_info.json
 
-# IDEs
-.idea/
+# Binaries and libraries
+*.o
+*.obj
+*.so
+*.dylib
+*.dll
+*.a
+*.lib
+*.exe
+*.out
+
+# IDE/editor files
 .vscode/
-*.user
-*.user.*
-*.autosave
-
-# OS
+.idea/
+*.swp
+*.swo
 .DS_Store
-Thumbs.db
 
-.venv/
-build*/
-*.tgz
-CMakeUserPresets.json
-build/
-build_offline_test/
+# Test and coverage artifacts
+*.gcda
+*.gcno
+*.gcov
+coverage/

@@ -1,35 +1,35 @@
 {
-  "version": 3,
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
   "configurePresets": [
     {
-      "name": "base",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_PREFIX_PATH": "${env:QT_ROOT_DIR}"
-      }
-    },
-    {
-      "name": "release",
-      "inherits": "base"
-    },
-    {
-      "name": "windows-release",
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC",
       "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/windows-release",
+      "binaryDir": "${sourceDir}/build/windows-msvc",
       "cacheVariables": {
-        "CMAKE_PREFIX_PATH": "${env:QT_ROOT_DIR}"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
+        "MICROFLUIDICS_ENABLE_QT": "ON"
       }
     }
   ],
   "buildPresets": [
-    { "name": "release", "configurePreset": "release" },
-    { "name": "windows-release", "configurePreset": "windows-release", "configuration": "Release" }
+    {
+      "name": "windows-msvc",
+      "configurePreset": "windows-msvc"
+    }
   ],
   "testPresets": [
-    { "name": "release", "configurePreset": "release" },
-    { "name": "windows-release", "configurePreset": "windows-release", "configuration": "Release" }
+    {
+      "name": "windows-msvc",
+      "configurePreset": "windows-msvc",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
   ]
 }

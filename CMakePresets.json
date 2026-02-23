@@ -1,63 +1,54 @@
 {
-  "version": 3,
+  "version": 4,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 23,
+    "minor": 24,
     "patch": 0
   },
   "configurePresets": [
     {
-      "name": "base",
-      "hidden": true,
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
-        "CMAKE_PREFIX_PATH": "$env{QT_ROOT_DIR}"
-      }
-    },
-    {
-      "name": "release",
-      "displayName": "Release (Linux/macOS)",
-      "inherits": "base",
-      "generator": "Ninja",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "windows-release",
-      "displayName": "Release (Windows, VS2022)",
-      "inherits": "base",
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC",
       "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/windows-release",
+      "binaryDir": "${sourceDir}/build/windows-msvc",
       "cacheVariables": {
-        "CMAKE_CONFIGURATION_TYPES": "Debug;Release"
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
+        "MICROFLUIDICS_ENABLE_QT": "ON"
+      }
+    },
+    {
+      "name": "windows-msvc-conan",
+      "displayName": "Windows MSVC (Conan Toolchain)",
+      "generator": "Visual Studio 17 2022",
+      "binaryDir": "${sourceDir}/build/windows-msvc",
+      "toolchainFile": "${sourceDir}/build/windows-msvc/conan_toolchain.cmake",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
+        "MICROFLUIDICS_ENABLE_QT": "ON"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "release",
-      "configurePreset": "release"
+      "name": "windows-msvc",
+      "configurePreset": "windows-msvc"
     },
     {
-      "name": "windows-release",
-      "configurePreset": "windows-release",
-      "configuration": "Release"
+      "name": "windows-msvc-conan",
+      "configurePreset": "windows-msvc-conan"
     }
   ],
   "testPresets": [
     {
-      "name": "release",
-      "configurePreset": "release",
+      "name": "windows-msvc",
+      "configurePreset": "windows-msvc",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "windows-release",
-      "configurePreset": "windows-release",
-      "configuration": "Debug",
+      "name": "windows-msvc-conan",
+      "configurePreset": "windows-msvc-conan",
       "output": {
         "outputOnFailure": true
       }

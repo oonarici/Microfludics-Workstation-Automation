@@ -1,0 +1,467 @@
+{
+  "project": {
+    "name": "Microfluidics Workstation Automation",
+    "acronym": "MWA",
+    "version": "0.1.0",
+    "license": "LGPL-3.0-or-later",
+    "description": "Cross-platform desktop application for controlling and automating microfluidic and acoustofluidic experiment workstations."
+  },
+
+  "build": {
+    "language": "C++20",
+    "build_system": "CMake",
+    "cmake_minimum_version": "3.21",
+    "qt_version": "6.5+",
+    "qt_license": "LGPL-v3",
+    "platforms": [
+      {
+        "os": "macOS",
+        "architectures": ["arm64", "x86_64"],
+        "compilers": ["AppleClang 14+"],
+        "packaging": "DMG / .app bundle"
+      },
+      {
+        "os": "Windows",
+        "architectures": ["x86_64"],
+        "compilers": ["MSVC 2019+", "MinGW 12+"],
+        "packaging": "NSIS or WiX installer"
+      }
+    ],
+    "ide": "Qt Creator (CMake project)"
+  },
+
+  "modules": [
+    {
+      "id": "MOD-GUI",
+      "name": "Graphical User Interface",
+      "phase": 1,
+      "description": "Operator interface for device control, experiment configuration, image preview, and logging.",
+      "requirements": [
+        {
+          "id": "GUI-REQ-001",
+          "title": "Main Window Layout",
+          "description": "Provide a main window with a menu bar, toolbar, central workspace, and dockable device control panels.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-002",
+          "title": "LED Control Panel",
+          "description": "Panel to control LED light source: on/off toggle, intensity slider, and status indicator.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-003",
+          "title": "Syringe Pump Control Panel",
+          "description": "Panel to control Nemesys syringe pump: set flow rate, volume, start/stop infusion, refill, and display current state.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-004",
+          "title": "Frequency Generator / Network Analyzer Control Panel",
+          "description": "Panel to set frequency, amplitude, waveform, and sweep parameters for PZT excitation. Display S-parameter results for network analyzer mode.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-005",
+          "title": "Camera Control Panel",
+          "description": "Panel to configure camera parameters (exposure, gain, ROI), display live preview, and control batch image capture.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-006",
+          "title": "XYZ Stage Control Panel",
+          "description": "Panel to jog the motorized microscope stage in X, Y, Z axes, set absolute positions, and perform homing.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-007",
+          "title": "Device Status Dashboard",
+          "description": "Display real-time connection status and health indicators for all connected devices.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-008",
+          "title": "Experiment Workflow Configuration",
+          "description": "Allow users to define and save sequences of operations (e.g., set flow rate, wait, capture images, change frequency).",
+          "priority": "should-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-009",
+          "title": "Logging and Error Reporting",
+          "description": "Provide a log panel displaying timestamped events, warnings, and errors from all modules.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-010",
+          "title": "Settings Persistence",
+          "description": "Save and restore application and per-device settings using QSettings across sessions.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-011",
+          "title": "Cross-Platform UI Consistency",
+          "description": "Ensure the GUI renders correctly and behaves consistently on both macOS and Windows.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "GUI-REQ-012",
+          "title": "Image Batch Preview",
+          "description": "Display thumbnails of captured image batches and allow users to browse and select images for analysis.",
+          "priority": "should-have",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "id": "MOD-HW",
+      "name": "Hardware Integration",
+      "phase": 2,
+      "description": "Device communication layer using vendor SDKs, serial protocols, and embedded interfaces.",
+      "requirements": [
+        {
+          "id": "HW-REQ-001",
+          "title": "Hardware Abstraction Layer",
+          "description": "Define an abstract device interface that all hardware controllers implement, enabling mock and real implementations.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-002",
+          "title": "LED Driver Integration",
+          "description": "Implement control for Thorlabs UPLEDUSB LED driver or custom power supply via USB/serial.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-003",
+          "title": "Syringe Pump Integration",
+          "description": "Implement control for Cetoni Nemesys syringe pump using the Cetoni SDK.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-004",
+          "title": "Frequency Generator Integration",
+          "description": "Implement SCPI-based control for frequency generators via VISA or serial.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-005",
+          "title": "Network Analyzer Integration",
+          "description": "Implement SCPI-based control for vector network analyzers for S-parameter measurements.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-006",
+          "title": "Camera Integration",
+          "description": "Implement frame acquisition using Basler Pylon C++ SDK with support for USB3 Vision and GigE Vision cameras.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-007",
+          "title": "XYZ Stage Motor Integration",
+          "description": "Implement position control for motorized microscope stage via serial/USB protocol.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-008",
+          "title": "Device Discovery",
+          "description": "Automatically detect connected devices on startup and allow manual connection configuration.",
+          "priority": "should-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-009",
+          "title": "Thread-Safe Command Queuing",
+          "description": "Queue device commands from the GUI thread and execute them on dedicated I/O threads to prevent UI blocking.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-010",
+          "title": "Error Recovery and Timeout Handling",
+          "description": "Handle communication errors, timeouts, and device disconnections gracefully with user notification.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "HW-REQ-011",
+          "title": "Platform-Conditional Device Support",
+          "description": "Disable devices whose SDKs are unavailable on the current platform and clearly indicate this in the GUI.",
+          "priority": "must-have",
+          "status": "planned"
+        }
+      ]
+    },
+    {
+      "id": "MOD-ANA",
+      "name": "Analysis Tool",
+      "phase": 3,
+      "description": "Post-processing and analysis of acquired experimental data, inspired by tools like Gwyddion.",
+      "requirements": [
+        {
+          "id": "ANA-REQ-001",
+          "title": "Image Batch Management",
+          "description": "Load, organize, and navigate batches of captured images for analysis.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-002",
+          "title": "Particle Detection",
+          "description": "Detect and locate particles in microscopy images using image processing algorithms.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-003",
+          "title": "Particle Tracking",
+          "description": "Track particle positions across sequential frames to compute trajectories.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-004",
+          "title": "Velocity Computation",
+          "description": "Calculate particle velocities and generate velocity field visualizations.",
+          "priority": "should-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-005",
+          "title": "Focusing Efficiency Metrics",
+          "description": "Compute statistical measures of acoustic or hydrodynamic focusing quality.",
+          "priority": "should-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-006",
+          "title": "Separation Efficiency Metrics",
+          "description": "Quantify the effectiveness of particle separation across channels or outlets.",
+          "priority": "should-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-007",
+          "title": "Data Export",
+          "description": "Export analysis results as CSV, annotated images, and summary reports.",
+          "priority": "must-have",
+          "status": "planned"
+        },
+        {
+          "id": "ANA-REQ-008",
+          "title": "Gwyddion-Style Visualization",
+          "description": "Provide 2D and pseudo-3D visualization of data fields similar to Gwyddion software capabilities.",
+          "priority": "could-have",
+          "status": "planned"
+        }
+      ]
+    }
+  ],
+
+  "hardware_devices": [
+    {
+      "id": "DEV-LED",
+      "name": "LED Light Source",
+      "typical_hardware": "Thorlabs UPLEDUSB LED driver or custom-designed power supply",
+      "interface": "USB / Serial",
+      "sdk": "Thorlabs Kinesis SDK or custom serial protocol",
+      "operations": ["power_on", "power_off", "set_intensity", "get_status"],
+      "platforms": {
+        "windows": "supported",
+        "macos": "conditional (Kinesis SDK is Windows-only; custom serial works on both)"
+      }
+    },
+    {
+      "id": "DEV-PUMP",
+      "name": "Syringe Pump",
+      "typical_hardware": "Cetoni Nemesys",
+      "interface": "USB (via Cetoni SDK)",
+      "sdk": "Cetoni Nemesys SDK (C/C++)",
+      "operations": ["set_flow_rate", "set_volume", "start_infusion", "stop", "refill", "get_position", "get_status"],
+      "platforms": {
+        "windows": "supported",
+        "macos": "check SDK availability"
+      }
+    },
+    {
+      "id": "DEV-SIGGEN",
+      "name": "Frequency Generator",
+      "typical_hardware": "Arbitrary waveform / signal generator for PZT excitation",
+      "interface": "VISA / USB / Serial",
+      "sdk": "SCPI commands over VISA or serial",
+      "operations": ["set_frequency", "set_amplitude", "set_waveform", "enable_output", "disable_output", "configure_sweep", "get_status"],
+      "platforms": {
+        "windows": "supported",
+        "macos": "supported (via NI-VISA or pyvisa)"
+      }
+    },
+    {
+      "id": "DEV-VNA",
+      "name": "Network Analyzer",
+      "typical_hardware": "Vector Network Analyzer for PZT characterization",
+      "interface": "VISA / USB",
+      "sdk": "SCPI commands over VISA",
+      "operations": ["set_frequency_range", "set_num_points", "measure_s_parameters", "get_trace_data", "get_status"],
+      "platforms": {
+        "windows": "supported",
+        "macos": "supported (via NI-VISA)"
+      }
+    },
+    {
+      "id": "DEV-CAM",
+      "name": "Camera",
+      "typical_hardware": "Basler area-scan camera (USB3 Vision or GigE Vision)",
+      "interface": "USB3 / GigE",
+      "sdk": "Basler Pylon C++ SDK",
+      "operations": ["connect", "disconnect", "set_exposure", "set_gain", "set_roi", "grab_single", "grab_continuous", "start_batch_capture", "stop_capture", "get_status"],
+      "platforms": {
+        "windows": "supported",
+        "macos": "supported"
+      }
+    },
+    {
+      "id": "DEV-STAGE",
+      "name": "Motorized XYZ Microscopic Stage",
+      "typical_hardware": "Stepper or servo motors with motion controller",
+      "interface": "Serial / USB",
+      "sdk": "Device-specific serial protocol",
+      "operations": ["home", "move_absolute", "move_relative", "jog", "stop", "get_position", "set_speed", "get_status"],
+      "platforms": {
+        "windows": "supported",
+        "macos": "supported"
+      }
+    }
+  ],
+
+  "dependencies": {
+    "required": [
+      {
+        "name": "Qt",
+        "version": "6.5+",
+        "license": "LGPL-v3",
+        "modules": ["Core", "Gui", "Widgets", "SerialPort", "Multimedia", "Charts", "Test"],
+        "purpose": "GUI framework, serial communication, image display, charting"
+      }
+    ],
+    "phase_2": [
+      {
+        "name": "Basler Pylon SDK",
+        "version": "7.x",
+        "license": "Proprietary (free redistribution)",
+        "purpose": "Camera frame acquisition and configuration"
+      },
+      {
+        "name": "Cetoni Nemesys SDK",
+        "version": "latest",
+        "license": "Proprietary",
+        "purpose": "Syringe pump control"
+      },
+      {
+        "name": "NI-VISA",
+        "version": "latest",
+        "license": "Proprietary (free runtime)",
+        "purpose": "SCPI instrument communication"
+      },
+      {
+        "name": "Thorlabs Kinesis SDK",
+        "version": "latest",
+        "license": "Proprietary",
+        "purpose": "LED driver control (Windows only)",
+        "platform_note": "Windows only"
+      }
+    ],
+    "optional": [
+      {
+        "name": "spdlog",
+        "version": "1.x",
+        "license": "MIT",
+        "purpose": "High-performance logging"
+      },
+      {
+        "name": "OpenCV",
+        "version": "4.x",
+        "license": "Apache-2.0",
+        "purpose": "Image processing for analysis module (Phase 3)"
+      },
+      {
+        "name": "GoogleTest",
+        "version": "1.x",
+        "license": "BSD-3-Clause",
+        "purpose": "Unit testing (alternative to Qt Test)"
+      }
+    ]
+  },
+
+  "non_functional_requirements": [
+    {
+      "id": "NFR-001",
+      "category": "Performance",
+      "description": "GUI must remain responsive (< 100ms input latency) during all device operations. All hardware I/O runs on background threads."
+    },
+    {
+      "id": "NFR-002",
+      "category": "Portability",
+      "description": "Application must build and run on macOS (ARM64, x86_64) and Windows (x86_64) from a single codebase."
+    },
+    {
+      "id": "NFR-003",
+      "category": "Licensing",
+      "description": "All framework and library dependencies must be LGPL-compatible or more permissive. Proprietary vendor SDKs are acceptable for hardware drivers only."
+    },
+    {
+      "id": "NFR-004",
+      "category": "Maintainability",
+      "description": "Code follows C++20 best practices. Modules are loosely coupled via abstract interfaces. Each device controller is independently testable with mock implementations."
+    },
+    {
+      "id": "NFR-005",
+      "category": "Usability",
+      "description": "A researcher with basic computer skills should be able to operate all devices through the GUI without command-line interaction."
+    },
+    {
+      "id": "NFR-006",
+      "category": "Reliability",
+      "description": "Device disconnection or communication failure must not crash the application. The system must recover gracefully and notify the user."
+    },
+    {
+      "id": "NFR-007",
+      "category": "Extensibility",
+      "description": "Adding support for a new device type requires implementing the device interface and adding a GUI panel — no changes to core architecture."
+    }
+  ],
+
+  "ci_cd": {
+    "platform": "GitHub Actions",
+    "pipelines": [
+      {
+        "name": "Build & Test",
+        "trigger": "push, pull_request",
+        "steps": ["checkout", "install Qt", "cmake configure", "build", "run tests"],
+        "matrix": {
+          "os": ["macos-latest", "windows-latest"]
+        }
+      }
+    ],
+    "code_quality": {
+      "formatter": "clang-format",
+      "linter": "clang-tidy",
+      "static_analysis": "cppcheck"
+    }
+  }
+}

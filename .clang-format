@@ -1,0 +1,35 @@
+# MWA — Clang-Format Configuration
+# Base: Google C++ Style Guide with Qt-specific adaptations
+# See CLAUDE.md for full coding conventions
+
+Language: Cpp
+BasedOnStyle: Google
+Standard: c++20
+
+IndentWidth: 2
+ColumnLimit: 80
+
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  # Related header (same name as .cpp)
+  - Regex:    '^".*"'
+    Priority: 0
+  # C system headers
+  - Regex:    '^<(assert|complex|ctype|errno|fenv|float|inttypes|iso646|limits|locale|math|setjmp|signal|stdalign|stdarg|stdatomic|stdbool|stddef|stdint|stdio|stdlib|stdnoreturn|string|tgmath|threads|time|uchar|wchar|wctype)\.h>'
+    Priority: 1
+  # C++ standard library headers
+  - Regex:    '^<[a-z_]+>'
+    Priority: 2
+  # Qt headers
+  - Regex:    '^<Q[A-Z]'
+    Priority: 3
+  # Third-party headers
+  - Regex:    '^<'
+    Priority: 4
+  # Project headers
+  - Regex:    '^"'
+    Priority: 5
+
+DerivePointerAlignment: false
+PointerAlignment: Left

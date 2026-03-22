@@ -7,6 +7,11 @@
  * Tests cover window properties, menu bar structure, action existence and
  * initial state, dock widgets, status bar labels, Logger integration, and
  * view toggle behaviour (dock/toolbar visibility).
+ *
+ * @note Visibility tests use !isHidden() instead of isVisible() because
+ *       isVisible() requires the parent widget to be shown on a real
+ *       display, which is not available on headless CI runners (Windows).
+ *       isHidden() checks only the widget's own hidden flag.
  */
 
 #include <QAction>
@@ -98,7 +103,7 @@ class TestMainWindow : public QObject {
 
   // --- Toolbar ---
   void test_mainToolbar_exists();
-  void test_mainToolbar_isVisible();
+  void test_mainToolbar_isNotHidden();
 
   // --- Central widget ---
   void test_centralStack_exists();
@@ -108,9 +113,9 @@ class TestMainWindow : public QObject {
 
   // --- Dock widgets ---
   void test_dockDevicePanels_exists();
-  void test_dockDevicePanels_isVisibleInitially();
+  void test_dockDevicePanels_isNotHiddenInitially();
   void test_dockLogPanel_exists();
-  void test_dockLogPanel_isVisibleInitially();
+  void test_dockLogPanel_isNotHiddenInitially();
 
   // --- Status bar labels ---
   void test_lblDeviceSummary_exists();
@@ -154,8 +159,9 @@ void TestMainWindow::initTestCase() {
 
 void TestMainWindow::init() {
   window_ = new MainWindow();
-  // Show but do not raise — avoids platform focus side-effects in tests.
-  window_->show();
+  // Do NOT call show() — on headless CI (Windows) the window never
+  // becomes "visible" and all isVisible() checks would fail.
+  // Instead, test widget properties and hidden-state directly.
   QApplication::processEvents();
 }
 
@@ -467,10 +473,11 @@ void TestMainWindow::test_mainToolbar_exists() {
   QVERIFY2(tb != nullptr, "mainToolbar must exist");
 }
 
-void TestMainWindow::test_mainToolbar_isVisible() {
+void TestMainWindow::test_mainToolbar_isNotHidden() {
   auto* tb = window_->findChild<QToolBar*>("mainToolbar");
   QVERIFY(tb != nullptr);
-  QVERIFY2(tb->isVisible(), "mainToolbar must be visible by default");
+  QVERIFY2(!tb->isHidden(),
+           "mainToolbar must not be hidden by default");
 }
 
 // ===========================================================================
@@ -516,11 +523,11 @@ void TestMainWindow::test_dockDevicePanels_exists() {
   QVERIFY2(dock != nullptr, "dockDevicePanels must exist");
 }
 
-void TestMainWindow::test_dockDevicePanels_isVisibleInitially() {
+void TestMainWindow::test_dockDevicePanels_isNotHiddenInitially() {
   auto* dock = window_->findChild<QDockWidget*>("dockDevicePanels");
   QVERIFY(dock != nullptr);
-  QVERIFY2(dock->isVisible(),
-           "dockDevicePanels must be visible by default");
+  QVERIFY2(!dock->isHidden(),
+           "dockDevicePanels must not be hidden by default");
 }
 
 void TestMainWindow::test_dockLogPanel_exists() {
@@ -528,10 +535,11 @@ void TestMainWindow::test_dockLogPanel_exists() {
   QVERIFY2(dock != nullptr, "dockLogPanel must exist");
 }
 
-void TestMainWindow::test_dockLogPanel_isVisibleInitially() {
+void TestMainWindow::test_dockLogPanel_isNotHiddenInitially() {
   auto* dock = window_->findChild<QDockWidget*>("dockLogPanel");
   QVERIFY(dock != nullptr);
-  QVERIFY2(dock->isVisible(), "dockLogPanel must be visible by default");
+  QVERIFY2(!dock->isHidden(),
+           "dockLogPanel must not be hidden by default");
 }
 
 // ===========================================================================
@@ -549,7 +557,8 @@ void TestMainWindow::test_lblDeviceSummary_initialTextContainsDevices() {
   QVERIFY2(lbl->text().contains(QStringLiteral("Devices"),
                                 Qt::CaseInsensitive),
            qPrintable(QStringLiteral(
-               "lblDeviceSummary initial text must contain 'Devices', got: '%1'")
+               "lblDeviceSummary initial text must contain 'Devices', "
+               "got: '%1'")
                .arg(lbl->text())));
 }
 
@@ -591,14 +600,15 @@ void TestMainWindow::test_loggerIntegration_lblLastEvent_updatesOnLogInfo() {
   const QString unique_msg =
       QStringLiteral("test_info_unique_%1").arg(
           QDateTime::currentMSecsSinceEpoch());
-  Logger::instance().logInfo(unique_msg, QStringLiteral("TestMainWindow"));
+  Logger::instance().logInfo(unique_msg,
+                             QStringLiteral("TestMainWindow"));
   QApplication::processEvents();
 
   QVERIFY2(lbl->text().contains(unique_msg),
-           qPrintable(
-               QStringLiteral("lblLastEvent must contain logged message '%1', "
-                              "actual: '%2'")
-                   .arg(unique_msg, lbl->text())));
+           qPrintable(QStringLiteral(
+               "lblLastEvent must contain logged message '%1', "
+               "actual: '%2'")
+               .arg(unique_msg, lbl->text())));
 }
 
 void TestMainWindow::test_loggerIntegration_lblLastEvent_updatesOnLogWarning() {
@@ -608,14 +618,15 @@ void TestMainWindow::test_loggerIntegration_lblLastEvent_updatesOnLogWarning() {
   const QString unique_msg =
       QStringLiteral("test_warning_unique_%1").arg(
           QDateTime::currentMSecsSinceEpoch());
-  Logger::instance().logWarning(unique_msg, QStringLiteral("TestMainWindow"));
+  Logger::instance().logWarning(unique_msg,
+                                QStringLiteral("TestMainWindow"));
   QApplication::processEvents();
 
   QVERIFY2(lbl->text().contains(unique_msg),
-           qPrintable(
-               QStringLiteral("lblLastEvent must contain warning message '%1', "
-                              "actual: '%2'")
-                   .arg(unique_msg, lbl->text())));
+           qPrintable(QStringLiteral(
+               "lblLastEvent must contain warning message '%1', "
+               "actual: '%2'")
+               .arg(unique_msg, lbl->text())));
 }
 
 void TestMainWindow::test_loggerIntegration_lblLastEvent_updatesOnLogError() {
@@ -625,14 +636,15 @@ void TestMainWindow::test_loggerIntegration_lblLastEvent_updatesOnLogError() {
   const QString unique_msg =
       QStringLiteral("test_error_unique_%1").arg(
           QDateTime::currentMSecsSinceEpoch());
-  Logger::instance().logError(unique_msg, QStringLiteral("TestMainWindow"));
+  Logger::instance().logError(unique_msg,
+                              QStringLiteral("TestMainWindow"));
   QApplication::processEvents();
 
   QVERIFY2(lbl->text().contains(unique_msg),
-           qPrintable(
-               QStringLiteral("lblLastEvent must contain error message '%1', "
-                              "actual: '%2'")
-                   .arg(unique_msg, lbl->text())));
+           qPrintable(QStringLiteral(
+               "lblLastEvent must contain error message '%1', "
+               "actual: '%2'")
+               .arg(unique_msg, lbl->text())));
 }
 
 void TestMainWindow::test_loggerIntegration_messageText_isContainedInLabel() {
@@ -644,10 +656,10 @@ void TestMainWindow::test_loggerIntegration_messageText_isContainedInLabel() {
   QApplication::processEvents();
 
   QVERIFY2(lbl->text().contains(sentinel),
-           qPrintable(
-               QStringLiteral("lblLastEvent must contain the raw message text "
-                              "'%1' after logging, actual: '%2'")
-                   .arg(sentinel, lbl->text())));
+           qPrintable(QStringLiteral(
+               "lblLastEvent must contain the raw message text "
+               "'%1' after logging, actual: '%2'")
+               .arg(sentinel, lbl->text())));
 }
 
 // ===========================================================================
@@ -656,21 +668,21 @@ void TestMainWindow::test_loggerIntegration_messageText_isContainedInLabel() {
 
 void TestMainWindow::test_toggleLeftDock_false_hidesDock() {
   auto* action = window_->findChild<QAction*>("actionToggleLeftDock");
-  auto* dock   = window_->findChild<QDockWidget*>("dockDevicePanels");
+  auto* dock = window_->findChild<QDockWidget*>("dockDevicePanels");
   QVERIFY(action != nullptr);
   QVERIFY(dock != nullptr);
 
   action->setChecked(false);
   QApplication::processEvents();
 
-  QVERIFY2(!dock->isVisible(),
+  QVERIFY2(dock->isHidden(),
            "dockDevicePanels must be hidden after actionToggleLeftDock "
            "is unchecked");
 }
 
 void TestMainWindow::test_toggleLeftDock_falseThentrue_showsDockAgain() {
   auto* action = window_->findChild<QAction*>("actionToggleLeftDock");
-  auto* dock   = window_->findChild<QDockWidget*>("dockDevicePanels");
+  auto* dock = window_->findChild<QDockWidget*>("dockDevicePanels");
   QVERIFY(action != nullptr);
   QVERIFY(dock != nullptr);
 
@@ -679,28 +691,28 @@ void TestMainWindow::test_toggleLeftDock_falseThentrue_showsDockAgain() {
   action->setChecked(true);
   QApplication::processEvents();
 
-  QVERIFY2(dock->isVisible(),
-           "dockDevicePanels must be visible after actionToggleLeftDock "
+  QVERIFY2(!dock->isHidden(),
+           "dockDevicePanels must not be hidden after actionToggleLeftDock "
            "is re-checked");
 }
 
 void TestMainWindow::test_toggleBottomDock_false_hidesDock() {
   auto* action = window_->findChild<QAction*>("actionToggleBottomDock");
-  auto* dock   = window_->findChild<QDockWidget*>("dockLogPanel");
+  auto* dock = window_->findChild<QDockWidget*>("dockLogPanel");
   QVERIFY(action != nullptr);
   QVERIFY(dock != nullptr);
 
   action->setChecked(false);
   QApplication::processEvents();
 
-  QVERIFY2(!dock->isVisible(),
+  QVERIFY2(dock->isHidden(),
            "dockLogPanel must be hidden after actionToggleBottomDock "
            "is unchecked");
 }
 
 void TestMainWindow::test_toggleBottomDock_falseThentrue_showsDockAgain() {
   auto* action = window_->findChild<QAction*>("actionToggleBottomDock");
-  auto* dock   = window_->findChild<QDockWidget*>("dockLogPanel");
+  auto* dock = window_->findChild<QDockWidget*>("dockLogPanel");
   QVERIFY(action != nullptr);
   QVERIFY(dock != nullptr);
 
@@ -709,8 +721,8 @@ void TestMainWindow::test_toggleBottomDock_falseThentrue_showsDockAgain() {
   action->setChecked(true);
   QApplication::processEvents();
 
-  QVERIFY2(dock->isVisible(),
-           "dockLogPanel must be visible after actionToggleBottomDock "
+  QVERIFY2(!dock->isHidden(),
+           "dockLogPanel must not be hidden after actionToggleBottomDock "
            "is re-checked");
 }
 
@@ -720,20 +732,21 @@ void TestMainWindow::test_toggleBottomDock_falseThentrue_showsDockAgain() {
 
 void TestMainWindow::test_toggleToolbar_false_hidesToolbar() {
   auto* action = window_->findChild<QAction*>("actionToggleToolbar");
-  auto* tb     = window_->findChild<QToolBar*>("mainToolbar");
+  auto* tb = window_->findChild<QToolBar*>("mainToolbar");
   QVERIFY(action != nullptr);
   QVERIFY(tb != nullptr);
 
   action->setChecked(false);
   QApplication::processEvents();
 
-  QVERIFY2(!tb->isVisible(),
-           "mainToolbar must be hidden after actionToggleToolbar is unchecked");
+  QVERIFY2(tb->isHidden(),
+           "mainToolbar must be hidden after actionToggleToolbar "
+           "is unchecked");
 }
 
 void TestMainWindow::test_toggleToolbar_falseThentrue_showsToolbarAgain() {
   auto* action = window_->findChild<QAction*>("actionToggleToolbar");
-  auto* tb     = window_->findChild<QToolBar*>("mainToolbar");
+  auto* tb = window_->findChild<QToolBar*>("mainToolbar");
   QVERIFY(action != nullptr);
   QVERIFY(tb != nullptr);
 
@@ -742,8 +755,9 @@ void TestMainWindow::test_toggleToolbar_falseThentrue_showsToolbarAgain() {
   action->setChecked(true);
   QApplication::processEvents();
 
-  QVERIFY2(tb->isVisible(),
-           "mainToolbar must be visible after actionToggleToolbar is re-checked");
+  QVERIFY2(!tb->isHidden(),
+           "mainToolbar must not be hidden after actionToggleToolbar "
+           "is re-checked");
 }
 
 // ===========================================================================
@@ -754,7 +768,7 @@ void TestMainWindow::test_multipleLogMessages_lastEventShowsMostRecent() {
   auto* lbl = window_->findChild<QLabel*>("lblLastEvent");
   QVERIFY(lbl != nullptr);
 
-  const QString first  = QStringLiteral("first_message");
+  const QString first = QStringLiteral("first_message");
   const QString second = QStringLiteral("second_message_final");
 
   Logger::instance().logInfo(first, QStringLiteral("TestMainWindow"));
@@ -763,15 +777,13 @@ void TestMainWindow::test_multipleLogMessages_lastEventShowsMostRecent() {
   QApplication::processEvents();
 
   QVERIFY2(lbl->text().contains(second),
-           qPrintable(
-               QStringLiteral("lblLastEvent must show the most recent message "
-                              "'%1', actual: '%2'")
-                   .arg(second, lbl->text())));
-  // The first message should no longer be the current text when a newer one
-  // has arrived, unless the second happens to share a substring.
-  // We verify the last emission won — the label ends with the second message.
+           qPrintable(QStringLiteral(
+               "lblLastEvent must show the most recent message "
+               "'%1', actual: '%2'")
+               .arg(second, lbl->text())));
   QVERIFY2(!lbl->text().contains(first) || lbl->text().contains(second),
-           "lblLastEvent must always reflect the most recently logged message");
+           "lblLastEvent must always reflect the most recently logged "
+           "message");
 }
 
 void TestMainWindow::test_rapidToggleDock_doesNotCrash() {
@@ -784,7 +796,7 @@ void TestMainWindow::test_rapidToggleDock_doesNotCrash() {
   }
   QApplication::processEvents();
 
-  // Restore to visible.
+  // Restore to not-hidden.
   action->setChecked(true);
   QApplication::processEvents();
   QVERIFY(true);  // Reaching here without crash is the pass condition.

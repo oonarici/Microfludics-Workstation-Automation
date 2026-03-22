@@ -28,18 +28,22 @@ LogFilterProxy::LogFilterProxy(QObject* parent)
 
 void LogFilterProxy::setSeverityFilter(bool debug, bool info,
                                        bool warning, bool error) {
-  beginFilterChange();
   show_debug_ = debug;
   show_info_ = info;
   show_warning_ = warning;
   show_error_ = error;
-  endFilterChange();
+  QT_WARNING_PUSH
+  QT_WARNING_DISABLE_DEPRECATED
+  invalidateFilter();
+  QT_WARNING_POP
 }
 
 void LogFilterProxy::setTextFilter(const QString& text) {
-  beginFilterChange();
   text_filter_ = text;
-  endFilterChange();
+  QT_WARNING_PUSH
+  QT_WARNING_DISABLE_DEPRECATED
+  invalidateFilter();
+  QT_WARNING_POP
 }
 
 bool LogFilterProxy::filterAcceptsRow(

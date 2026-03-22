@@ -1,54 +1,65 @@
 {
-  "version": 4,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 24,
+    "minor": 21,
     "patch": 0
   },
   "configurePresets": [
     {
-      "name": "windows-msvc",
-      "displayName": "Windows MSVC",
-      "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/windows-msvc",
+      "name": "macos-clang",
+      "displayName": "macOS Clang",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/macos-clang",
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
-        "MICROFLUIDICS_ENABLE_QT": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Darwin"
       }
     },
     {
-      "name": "windows-msvc-conan",
-      "displayName": "Windows MSVC (Conan Toolchain)",
-      "generator": "Visual Studio 17 2022",
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC",
+      "generator": "Ninja",
       "binaryDir": "${sourceDir}/build/windows-msvc",
-      "toolchainFile": "${sourceDir}/build/windows-msvc/conan_toolchain.cmake",
       "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/windows-msvc/install",
-        "MICROFLUIDICS_ENABLE_QT": "ON"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      },
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "windows-msvc",
-      "configurePreset": "windows-msvc"
+      "name": "macos-clang",
+      "displayName": "macOS Clang Build",
+      "configurePreset": "macos-clang"
     },
     {
-      "name": "windows-msvc-conan",
-      "configurePreset": "windows-msvc-conan"
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC Build",
+      "configurePreset": "windows-msvc"
     }
   ],
   "testPresets": [
     {
-      "name": "windows-msvc",
-      "configurePreset": "windows-msvc",
+      "name": "macos-clang",
+      "displayName": "macOS Clang Tests",
+      "configurePreset": "macos-clang",
       "output": {
         "outputOnFailure": true
       }
     },
     {
-      "name": "windows-msvc-conan",
-      "configurePreset": "windows-msvc-conan",
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC Tests",
+      "configurePreset": "windows-msvc",
       "output": {
         "outputOnFailure": true
       }

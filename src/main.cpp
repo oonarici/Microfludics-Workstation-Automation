@@ -1,20 +1,20 @@
-#include "microfluidics/app.h"
+/**
+ * @file main.cpp
+ * @brief Entry point for the Microfluidics Workstation Automation application.
+ * @author MWA Team
+ * @date 2026-03-22
+ * @copyright LGPL-v3
+ */
 
-#include <iostream>
+#include <QApplication>
 
-#ifdef MICROFLUIDICS_HAVE_QT
-#include <QCoreApplication>
-#endif
-
-int main(int argc, char** argv) {
-#ifdef MICROFLUIDICS_HAVE_QT
-    QCoreApplication app(argc, argv);
-    (void)app;
-#else
-    (void)argc;
-    (void)argv;
-#endif
-
-    std::cout << microfluidics::app_name() << "\n";
-    return 0;
+/**
+ * @brief Application entry point.
+ * @param argc Argument count.
+ * @param argv Argument vector.
+ * @return Exit code from QApplication::exec().
+ */
+int main(int argc, char* argv[]) {
+  QApplication app(argc, argv);
+  return app.exec();
 }

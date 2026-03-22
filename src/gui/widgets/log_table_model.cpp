@@ -94,7 +94,7 @@ QVariant LogTableModel::data(const QModelIndex& index,
         QStringLiteral("yyyy-MM-dd HH:mm:ss.zzz"));
   }
 
-  if (role == Qt::UserRole) {
+  if (role == Qt::UserRole && index.column() == kSeverity) {
     return static_cast<int>(entry.severity);
   }
 
@@ -122,6 +122,7 @@ QVariant LogTableModel::headerData(int section,
 }
 
 const mwa::core::LogEntry& LogTableModel::entryAt(int row) const {
+  Q_ASSERT(row >= 0 && row < entries_.size());
   return entries_.at(row);
 }
 

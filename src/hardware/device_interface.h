@@ -66,7 +66,7 @@ class DeviceInterface : public QObject {
   /**
    * @brief Virtual destructor.
    */
-  ~DeviceInterface() override = default;
+  ~DeviceInterface() override;
 
   /**
    * @brief Initiate an asynchronous connection to the physical device.

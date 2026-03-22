@@ -61,3 +61,56 @@ target_link_libraries(test_main_window PRIVATE
 )
 
 add_test(NAME test_main_window COMMAND test_main_window)
+
+# ---------------------------------------------------------------------------
+# LogTableModel tests
+# ---------------------------------------------------------------------------
+add_executable(test_log_table_model test_log_table_model.cpp)
+
+target_link_libraries(test_log_table_model PRIVATE
+  MwaGui
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_log_table_model COMMAND test_log_table_model)
+
+# ---------------------------------------------------------------------------
+# LogPanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_log_panel test_log_panel.cpp)
+
+target_link_libraries(test_log_panel PRIVATE
+  MwaGui
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_log_panel COMMAND test_log_panel)
+
+# ---------------------------------------------------------------------------
+# DeviceStatusDashboard tests
+# ---------------------------------------------------------------------------
+add_executable(test_device_status_dashboard
+  test_device_status_dashboard.cpp
+)
+
+target_link_libraries(test_device_status_dashboard PRIVATE
+  MwaGui
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_device_status_dashboard
+  COMMAND test_device_status_dashboard
+)

@@ -21,6 +21,8 @@
 #include <QVBoxLayout>
 
 #include "core/settings_manager.h"
+#include "gui/widgets/device_status_dashboard.h"
+#include "gui/widgets/log_panel.h"
 
 namespace mwa::app {
 
@@ -53,7 +55,6 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
   connectSignals();
   restoreSettings();
 
-  // Log the application start event.
   mwa::core::Logger::instance().logInfo(
       QStringLiteral("Application started"), QStringLiteral("MainWindow"));
 }
@@ -347,24 +348,8 @@ void MainWindow::createDocks() {
   dock_device_panels_->setMinimumWidth(280);
   dock_device_panels_->setMaximumWidth(400);
 
-  auto* device_placeholder = new QWidget(dock_device_panels_);
-  device_placeholder->setObjectName(
-      QStringLiteral("wgtDevicePanelsPlaceholder"));
-  device_placeholder->setStyleSheet(
-      QStringLiteral("background-color: #ECF0F1;"));
-
-  auto* device_layout = new QVBoxLayout(device_placeholder);
-  auto* lbl_device = new QLabel(
-      QStringLiteral("Device panels will appear here."),
-      device_placeholder);
-  lbl_device->setObjectName(
-      QStringLiteral("lblDevicePanelsPlaceholder"));
-  lbl_device->setAlignment(Qt::AlignCenter);
-  lbl_device->setStyleSheet(
-      QStringLiteral("color: #95A5A6; font-size: 12pt;"));
-  device_layout->addWidget(lbl_device);
-
-  dock_device_panels_->setWidget(device_placeholder);
+  auto* dashboard = new mwa::gui::DeviceStatusDashboard(this);
+  dock_device_panels_->setWidget(dashboard);
   addDockWidget(Qt::LeftDockWidgetArea, dock_device_panels_);
 
   // Bottom dock — log panel placeholder
@@ -376,23 +361,8 @@ void MainWindow::createDocks() {
       QDockWidget::DockWidgetFloatable);
   dock_log_panel_->setMinimumHeight(100);
 
-  auto* log_placeholder = new QWidget(dock_log_panel_);
-  log_placeholder->setObjectName(
-      QStringLiteral("wgtLogPanelPlaceholder"));
-  log_placeholder->setStyleSheet(
-      QStringLiteral("background-color: #ECF0F1;"));
-
-  auto* log_layout = new QVBoxLayout(log_placeholder);
-  auto* lbl_log = new QLabel(
-      QStringLiteral("Log panel will appear here (MWA-02-E)."),
-      log_placeholder);
-  lbl_log->setObjectName(QStringLiteral("lblLogPanelPlaceholder"));
-  lbl_log->setAlignment(Qt::AlignCenter);
-  lbl_log->setStyleSheet(
-      QStringLiteral("color: #95A5A6; font-size: 12pt;"));
-  log_layout->addWidget(lbl_log);
-
-  dock_log_panel_->setWidget(log_placeholder);
+  auto* log_panel = new mwa::gui::LogPanel(this);
+  dock_log_panel_->setWidget(log_panel);
   addDockWidget(Qt::BottomDockWidgetArea, dock_log_panel_);
   resizeDocks({dock_log_panel_}, {150}, Qt::Vertical);
 }

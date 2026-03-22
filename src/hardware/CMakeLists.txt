@@ -1,9 +1,8 @@
-add_library(MwaHardware INTERFACE)
-
-target_include_directories(MwaHardware INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-target_link_libraries(MwaHardware INTERFACE Qt6::Core)
-
-target_sources(MwaHardware INTERFACE
-  ${CMAKE_CURRENT_SOURCE_DIR}/device_interface.h
+add_library(MwaHardware STATIC
+  device_interface.h
+  device_interface.cpp
 )
+
+target_include_directories(MwaHardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+target_link_libraries(MwaHardware PUBLIC Qt6::Core)

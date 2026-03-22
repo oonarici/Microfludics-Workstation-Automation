@@ -26,10 +26,11 @@ void SettingsManager::setValue(const QString& group,
                                const QVariant& value) {
   QString full_key = group + "/" + key;
   QVariant old_value = settings_.value(full_key);
-  settings_.setValue(full_key, value);
-  if (old_value != value) {
-    emit settingChanged(group, key, value);
+  if (old_value == value) {
+    return;
   }
+  settings_.setValue(full_key, value);
+  emit settingChanged(group, key, value);
 }
 
 QVariant SettingsManager::value(const QString& group,

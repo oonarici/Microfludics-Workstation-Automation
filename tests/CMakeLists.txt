@@ -45,3 +45,19 @@ target_link_libraries(test_device_interface PRIVATE
 )
 
 add_test(NAME test_device_interface COMMAND test_device_interface)
+
+# ---------------------------------------------------------------------------
+# MainWindow tests
+# ---------------------------------------------------------------------------
+add_executable(test_main_window test_main_window.cpp)
+
+target_link_libraries(test_main_window PRIVATE
+  MwaApp
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_main_window COMMAND test_main_window)

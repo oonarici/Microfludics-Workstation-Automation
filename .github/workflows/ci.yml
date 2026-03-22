@@ -32,11 +32,15 @@ jobs:
         with:
           version: "6.8.3"
           cache: true
-          arch: ${{ matrix.qt_arch || null }}
+          arch: ${{ matrix.qt_arch }}
 
       - name: Install Ninja (macOS)
         if: runner.os == 'macOS'
         run: brew install ninja
+
+      - name: Install Ninja (Windows)
+        if: runner.os == 'Windows'
+        run: choco install ninja
 
       - name: Setup MSVC (Windows)
         if: runner.os == 'Windows'

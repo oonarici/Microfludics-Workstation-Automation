@@ -227,6 +227,8 @@ void DeviceStatusDashboard::updateCardState(
       color = QStringLiteral("#E74C3C");
       text = QStringLiteral("Error");
       break;
+    default:
+      Q_UNREACHABLE();
   }
 
   card.dot->setStyleSheet(

@@ -328,7 +328,6 @@ void MainWindow::createCentralWidget() {
       QStringLiteral("color: #95A5A6; font-size: 14pt;"));
 
   layout->addWidget(lbl_no_camera);
-  placeholder_widget->setLayout(layout);
 
   central_stack_->addWidget(placeholder_widget);  // index 0
   setCentralWidget(central_stack_);
@@ -364,7 +363,6 @@ void MainWindow::createDocks() {
   lbl_device->setStyleSheet(
       QStringLiteral("color: #95A5A6; font-size: 12pt;"));
   device_layout->addWidget(lbl_device);
-  device_placeholder->setLayout(device_layout);
 
   dock_device_panels_->setWidget(device_placeholder);
   addDockWidget(Qt::LeftDockWidgetArea, dock_device_panels_);
@@ -393,7 +391,6 @@ void MainWindow::createDocks() {
   lbl_log->setStyleSheet(
       QStringLiteral("color: #95A5A6; font-size: 12pt;"));
   log_layout->addWidget(lbl_log);
-  log_placeholder->setLayout(log_layout);
 
   dock_log_panel_->setWidget(log_placeholder);
   addDockWidget(Qt::BottomDockWidgetArea, dock_log_panel_);

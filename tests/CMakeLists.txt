@@ -6,3 +6,42 @@ target_link_libraries(tst_smoke PRIVATE
 )
 
 add_test(NAME tst_smoke COMMAND tst_smoke)
+
+# ---------------------------------------------------------------------------
+# Logger tests
+# ---------------------------------------------------------------------------
+add_executable(test_logger test_logger.cpp)
+
+target_link_libraries(test_logger PRIVATE
+  MwaCore
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_logger COMMAND test_logger)
+
+# ---------------------------------------------------------------------------
+# SettingsManager tests
+# ---------------------------------------------------------------------------
+add_executable(test_settings_manager test_settings_manager.cpp)
+
+target_link_libraries(test_settings_manager PRIVATE
+  MwaCore
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_settings_manager COMMAND test_settings_manager)
+
+# ---------------------------------------------------------------------------
+# DeviceInterface tests
+# ---------------------------------------------------------------------------
+add_executable(test_device_interface test_device_interface.cpp)
+
+target_link_libraries(test_device_interface PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_device_interface COMMAND test_device_interface)

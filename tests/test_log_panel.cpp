@@ -25,9 +25,9 @@
 #include "core/logger.h"
 #include "gui/widgets/log_panel.h"
 
-static int argc = 1;
-static char app_name[] = "test_log_panel";
-static char* argv[] = {app_name};
+static int s_argc = 1;
+static char s_app_name[] = "test_log_panel";
+static char* s_argv[] = {s_app_name};
 
 class TestLogPanel : public QObject {
   Q_OBJECT
@@ -38,7 +38,7 @@ class TestLogPanel : public QObject {
 
  private slots:
   void initTestCase() {
-    app_ = new QApplication(argc, argv);
+    app_ = new QApplication(s_argc, s_argv);
   }
 
   void init() {

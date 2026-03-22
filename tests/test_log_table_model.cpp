@@ -18,9 +18,9 @@
 
 #include "gui/widgets/log_table_model.h"
 
-static int argc = 1;
-static char app_name[] = "test_log_table_model";
-static char* argv[] = {app_name};
+static int s_argc = 1;
+static char s_app_name[] = "test_log_table_model";
+static char* s_argv[] = {s_app_name};
 
 class TestLogTableModel : public QObject {
   Q_OBJECT
@@ -38,7 +38,7 @@ class TestLogTableModel : public QObject {
 
  private slots:
   void initTestCase() {
-    app_ = new QApplication(argc, argv);
+    app_ = new QApplication(s_argc, s_argv);
   }
 
   void init() {

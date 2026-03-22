@@ -21,9 +21,9 @@
 #include "gui/widgets/device_status_dashboard.h"
 #include "hardware/device_interface.h"
 
-static int argc = 1;
-static char app_name[] = "test_device_status_dashboard";
-static char* argv[] = {app_name};
+static int s_argc = 1;
+static char s_app_name[] = "test_device_status_dashboard";
+static char* s_argv[] = {s_app_name};
 
 // ---------------------------------------------------------------------------
 // Mock device for testing state changes.
@@ -78,7 +78,7 @@ class TestDeviceStatusDashboard : public QObject {
 
  private slots:
   void initTestCase() {
-    app_ = new QApplication(argc, argv);
+    app_ = new QApplication(s_argc, s_argv);
   }
 
   void init() {

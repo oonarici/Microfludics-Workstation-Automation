@@ -114,3 +114,95 @@ target_link_libraries(test_device_status_dashboard PRIVATE
 add_test(NAME test_device_status_dashboard
   COMMAND test_device_status_dashboard
 )
+
+# ---------------------------------------------------------------------------
+# MockLedController tests
+# ---------------------------------------------------------------------------
+add_executable(test_mock_led_controller test_mock_led_controller.cpp)
+
+target_link_libraries(test_mock_led_controller PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_mock_led_controller COMMAND test_mock_led_controller)
+
+# ---------------------------------------------------------------------------
+# MockPumpController tests
+# ---------------------------------------------------------------------------
+add_executable(test_mock_pump_controller test_mock_pump_controller.cpp)
+
+target_link_libraries(test_mock_pump_controller PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_mock_pump_controller COMMAND test_mock_pump_controller)
+
+# ---------------------------------------------------------------------------
+# MockSignalGeneratorController tests
+# ---------------------------------------------------------------------------
+add_executable(test_mock_signal_generator_controller
+  test_mock_signal_generator_controller.cpp
+)
+
+target_link_libraries(test_mock_signal_generator_controller PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_mock_signal_generator_controller
+  COMMAND test_mock_signal_generator_controller
+)
+
+# ---------------------------------------------------------------------------
+# MockNetworkAnalyzerController tests
+# ---------------------------------------------------------------------------
+add_executable(test_mock_network_analyzer_controller
+  test_mock_network_analyzer_controller.cpp
+)
+
+target_link_libraries(test_mock_network_analyzer_controller PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_mock_network_analyzer_controller
+  COMMAND test_mock_network_analyzer_controller
+)
+
+# ---------------------------------------------------------------------------
+# MockCameraController tests
+# ---------------------------------------------------------------------------
+add_executable(test_mock_camera_controller test_mock_camera_controller.cpp)
+
+target_link_libraries(test_mock_camera_controller PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_mock_camera_controller COMMAND test_mock_camera_controller)
+
+# ---------------------------------------------------------------------------
+# MockStageController tests
+# ---------------------------------------------------------------------------
+add_executable(test_mock_stage_controller test_mock_stage_controller.cpp)
+
+target_link_libraries(test_mock_stage_controller PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_mock_stage_controller COMMAND test_mock_stage_controller)

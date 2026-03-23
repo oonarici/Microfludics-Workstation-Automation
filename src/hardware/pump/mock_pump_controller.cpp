@@ -15,6 +15,8 @@
 
 namespace mwa::hardware {
 
+static constexpr int kConnectDelayMs = 500;
+
 MockPumpController::MockPumpController(QObject* parent)
     : PumpControllerInterface(parent),
       state_(DeviceState::kDisconnected),
@@ -33,7 +35,7 @@ void MockPumpController::connectDevice() {
   state_ = DeviceState::kConnecting;
   emit stateChanged(state_);
 
-  QTimer::singleShot(500, this, [this]() {
+  QTimer::singleShot(kConnectDelayMs, this, [this]() {
     state_ = DeviceState::kConnected;
     emit stateChanged(state_);
   });

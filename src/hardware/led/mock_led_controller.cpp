@@ -15,6 +15,8 @@
 
 namespace mwa::hardware {
 
+static constexpr int kConnectDelayMs = 500;
+
 MockLedController::MockLedController(QObject* parent)
     : LedControllerInterface(parent),
       state_(DeviceState::kDisconnected),
@@ -31,7 +33,7 @@ void MockLedController::connectDevice() {
   state_ = DeviceState::kConnecting;
   emit stateChanged(state_);
 
-  QTimer::singleShot(500, this, [this]() {
+  QTimer::singleShot(kConnectDelayMs, this, [this]() {
     state_ = DeviceState::kConnected;
     emit stateChanged(state_);
   });

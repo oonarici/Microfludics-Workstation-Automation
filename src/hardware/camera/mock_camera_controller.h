@@ -182,17 +182,19 @@ class MockCameraController : public CameraControllerInterface {
   double gain_;
   /// Current region of interest.
   QRect roi_;
-  /// Whether a capture mode is active.
-  bool is_capturing_;
   /// Most recently produced frame.
   QImage last_frame_;
   /// Timer used for continuous and batch capture.
   QTimer* capture_timer_;
   /// Remaining frame count for batch capture (0 = continuous).
   int batch_remaining_;
+  /// Cached checkerboard pattern, invalidated when ROI changes.
+  mutable QImage cached_pattern_;
 
   /**
-   * @brief Generate a checkerboard test-pattern QImage matching the ROI size.
+   * @brief Return a checkerboard test-pattern QImage matching the ROI size.
+   *
+   * Caches the pattern and only regenerates when the ROI dimensions change.
    *
    * @return A QImage with a 32x32 pixel checkerboard pattern.
    */

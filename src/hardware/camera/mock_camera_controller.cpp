@@ -16,6 +16,7 @@
 
 namespace mwa::hardware {
 
+static constexpr int    kConnectDelayMs       = 500;
 static constexpr double kDefaultExposureMs    = 10.0;
 static constexpr double kDefaultGain          = 1.0;
 static constexpr int    kDefaultRoiWidth      = 640;
@@ -29,7 +30,6 @@ MockCameraController::MockCameraController(QObject* parent)
       exposure_(kDefaultExposureMs),
       gain_(kDefaultGain),
       roi_(0, 0, kDefaultRoiWidth, kDefaultRoiHeight),
-      is_capturing_(false),
       capture_timer_(new QTimer(this)),
       batch_remaining_(0) {
   connect(capture_timer_, &QTimer::timeout,
@@ -46,7 +46,7 @@ void MockCameraController::connectDevice() {
   state_ = DeviceState::kConnecting;
   emit stateChanged(state_);
 
-  QTimer::singleShot(500, this, [this]() {
+  QTimer::singleShot(kConnectDelayMs, this, [this]() {
     state_ = DeviceState::kConnected;
     emit stateChanged(state_);
   });
@@ -57,7 +57,7 @@ void MockCameraController::disconnectDevice() {
     return;
   }
   capture_timer_->stop();
-  is_capturing_ = false;
+  batch_remaining_ = 0;
   state_ = DeviceState::kDisconnected;
   emit stateChanged(state_);
 }
@@ -94,6 +94,7 @@ double MockCameraController::gain() const {
 
 void MockCameraController::setRoi(const QRect& roi) {
   roi_ = roi;
+  cached_pattern_ = QImage{};  // Invalidate cached test pattern.
 }
 
 QRect MockCameraController::roi() const {
@@ -106,31 +107,28 @@ void MockCameraController::grabSingle() {
 }
 
 void MockCameraController::startContinuousCapture() {
-  if (is_capturing_) {
+  if (capture_timer_->isActive()) {
     return;
   }
-  is_capturing_    = true;
   batch_remaining_ = 0;
   capture_timer_->start(kContinuousIntervalMs);
 }
 
 void MockCameraController::stopCapture() {
   capture_timer_->stop();
-  is_capturing_    = false;
   batch_remaining_ = 0;
 }
 
 void MockCameraController::startBatchCapture(int count, int interval_ms) {
-  if (is_capturing_) {
+  if (capture_timer_->isActive()) {
     return;
   }
-  is_capturing_    = true;
   batch_remaining_ = count;
   capture_timer_->start(interval_ms);
 }
 
 bool MockCameraController::isCapturing() const {
-  return is_capturing_;
+  return capture_timer_->isActive();
 }
 
 QImage MockCameraController::lastFrame() const {
@@ -141,17 +139,26 @@ QImage MockCameraController::generateTestPattern() const {
   const int width  = roi_.width()  > 0 ? roi_.width()  : kDefaultRoiWidth;
   const int height = roi_.height() > 0 ? roi_.height() : kDefaultRoiHeight;
 
+  if (!cached_pattern_.isNull() &&
+      cached_pattern_.width() == width &&
+      cached_pattern_.height() == height) {
+    return cached_pattern_;
+  }
+
   QImage image(width, height, QImage::Format_RGB32);
 
   for (int y = 0; y < height; ++y) {
+    auto* row = reinterpret_cast<QRgb*>(image.scanLine(y));
+    const int checker_row = y / kCheckerSize;
     for (int x = 0; x < width; ++x) {
-      const bool is_light =
-          (((x / kCheckerSize) + (y / kCheckerSize)) % 2) == 0;
-      image.setPixel(x, y, is_light ? 0xFFFFFFFF : 0xFF000000);
+      row[x] = (((x / kCheckerSize) + checker_row) % 2 == 0)
+                   ? 0xFFFFFFFF
+                   : 0xFF000000;
     }
   }
 
-  return image;
+  cached_pattern_ = image;
+  return cached_pattern_;
 }
 
 void MockCameraController::onCaptureTimerTick() {
@@ -162,7 +169,6 @@ void MockCameraController::onCaptureTimerTick() {
     --batch_remaining_;
     if (batch_remaining_ == 0) {
       capture_timer_->stop();
-      is_capturing_ = false;
       emit batchComplete();
     }
   }

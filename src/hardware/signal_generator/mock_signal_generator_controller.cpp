@@ -16,6 +16,8 @@
 
 namespace mwa::hardware {
 
+static constexpr int kConnectDelayMs = 500;
+
 MockSignalGeneratorController::MockSignalGeneratorController(QObject* parent)
     : SignalGeneratorControllerInterface(parent),
       state_(DeviceState::kDisconnected),
@@ -37,7 +39,7 @@ void MockSignalGeneratorController::connectDevice() {
   state_ = DeviceState::kConnecting;
   emit stateChanged(state_);
 
-  QTimer::singleShot(500, this, [this]() {
+  QTimer::singleShot(kConnectDelayMs, this, [this]() {
     state_ = DeviceState::kConnected;
     emit stateChanged(state_);
   });

@@ -16,6 +16,7 @@
 
 namespace mwa::hardware {
 
+static constexpr int    kConnectDelayMs  = 500;
 static constexpr double kDefaultSpeed    = 1.0;
 static constexpr int    kMoveDelayMs     = 300;
 
@@ -38,7 +39,7 @@ void MockStageController::connectDevice() {
   state_ = DeviceState::kConnecting;
   emit stateChanged(state_);
 
-  QTimer::singleShot(500, this, [this]() {
+  QTimer::singleShot(kConnectDelayMs, this, [this]() {
     state_ = DeviceState::kConnected;
     emit stateChanged(state_);
   });
@@ -82,40 +83,11 @@ void MockStageController::home() {
 }
 
 void MockStageController::moveAbsolute(double x, double y, double z) {
-  if (is_moving_) {
-    return;
-  }
-  is_moving_ = true;
-
-  QTimer::singleShot(kMoveDelayMs, this, [this, x, y, z]() {
-    position_x_ = x;
-    position_y_ = y;
-    position_z_ = z;
-    is_moving_ = false;
-    emit positionChanged(position_x_, position_y_, position_z_);
-    emit moveComplete();
-  });
+  doMove(x, y, z);
 }
 
 void MockStageController::moveRelative(double dx, double dy, double dz) {
-  if (is_moving_) {
-    return;
-  }
-  is_moving_ = true;
-
-  const double target_x = position_x_ + dx;
-  const double target_y = position_y_ + dy;
-  const double target_z = position_z_ + dz;
-
-  QTimer::singleShot(kMoveDelayMs, this,
-      [this, target_x, target_y, target_z]() {
-    position_x_ = target_x;
-    position_y_ = target_y;
-    position_z_ = target_z;
-    is_moving_ = false;
-    emit positionChanged(position_x_, position_y_, position_z_);
-    emit moveComplete();
-  });
+  doMove(position_x_ + dx, position_y_ + dy, position_z_ + dz);
 }
 
 void MockStageController::stopMotion() {
@@ -145,6 +117,22 @@ double MockStageController::speed() const {
 
 bool MockStageController::isMoving() const {
   return is_moving_;
+}
+
+void MockStageController::doMove(double tx, double ty, double tz) {
+  if (is_moving_) {
+    return;
+  }
+  is_moving_ = true;
+
+  QTimer::singleShot(kMoveDelayMs, this, [this, tx, ty, tz]() {
+    position_x_ = tx;
+    position_y_ = ty;
+    position_z_ = tz;
+    is_moving_ = false;
+    emit positionChanged(position_x_, position_y_, position_z_);
+    emit moveComplete();
+  });
 }
 
 }  // namespace mwa::hardware

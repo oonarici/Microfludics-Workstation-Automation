@@ -36,7 +36,7 @@ class NetworkAnalyzerControllerInterface : public DeviceInterface {
 
  public:
   /**
-   * @brief Protected constructor — only concrete subclasses may call this.
+   * @brief Constructor — forwards the QObject parent to DeviceInterface.
    *
    * @param parent Optional QObject parent for Qt ownership management.
    */

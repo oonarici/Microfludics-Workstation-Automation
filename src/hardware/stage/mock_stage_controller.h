@@ -175,6 +175,19 @@ class MockStageController : public StageControllerInterface {
   double speed_;
   /// Whether the stage is currently moving.
   bool is_moving_;
+
+  /**
+   * @brief Schedule an asynchronous move to the given target position.
+   *
+   * Shared implementation for moveAbsolute() and moveRelative(). Guards
+   * against concurrent moves, simulates a delay, then updates position
+   * and emits positionChanged() + moveComplete().
+   *
+   * @param tx Target X position in millimetres.
+   * @param ty Target Y position in millimetres.
+   * @param tz Target Z position in millimetres.
+   */
+  void doMove(double tx, double ty, double tz);
 };
 
 }  // namespace mwa::hardware

@@ -17,6 +17,7 @@
 
 namespace mwa::hardware {
 
+static constexpr int    kConnectDelayMs        = 500;
 static constexpr double kDefaultStartFrequency = 1.0e6;   // 1 MHz
 static constexpr double kDefaultStopFrequency  = 100.0e6; // 100 MHz
 static constexpr int    kDefaultNumPoints      = 201;
@@ -40,7 +41,7 @@ void MockNetworkAnalyzerController::connectDevice() {
   state_ = DeviceState::kConnecting;
   emit stateChanged(state_);
 
-  QTimer::singleShot(500, this, [this]() {
+  QTimer::singleShot(kConnectDelayMs, this, [this]() {
     state_ = DeviceState::kConnected;
     emit stateChanged(state_);
   });
@@ -109,16 +110,16 @@ void MockNetworkAnalyzerController::finishMeasurement() {
   const int    n     = num_points_;
   const double f_min = start_frequency_;
   const double f_max = stop_frequency_;
-  const double step  = (n > 1) ? (f_max - f_min) / (n - 1) : 0.0;
+  const double span  = (n > 1) ? static_cast<double>(n - 1) : 1.0;
+  const double step  = (f_max - f_min) / span;
+
+  trace_frequencies_.reserve(n);
+  trace_magnitudes_.reserve(n);
 
   for (int i = 0; i < n; ++i) {
-    const double freq = f_min + i * step;
-    trace_frequencies_.append(freq);
-
+    trace_frequencies_.append(f_min + i * step);
     // Simulate a simple resonance: sinusoidal dip around centre frequency.
-    const double normalised = static_cast<double>(i) / (n > 1 ? n - 1 : 1);
-    const double magnitude  = -20.0 * qSin(M_PI * normalised);
-    trace_magnitudes_.append(magnitude);
+    trace_magnitudes_.append(-20.0 * qSin(M_PI * (i / span)));
   }
 
   is_measuring_ = false;

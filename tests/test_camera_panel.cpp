@@ -1021,6 +1021,10 @@ class TestCameraPanel : public QObject {
     // Still disabled — old controller's signal was disconnected.
     QVERIFY2(!grp->isEnabled(),
              "Old controller's stateChanged must be disconnected after replace");
+
+    // Detach ctrl2 before it goes out of scope to avoid dangling pointer
+    // in cleanup() which calls setController(nullptr).
+    panel_->setController(nullptr);
   }
 
   // =========================================================================

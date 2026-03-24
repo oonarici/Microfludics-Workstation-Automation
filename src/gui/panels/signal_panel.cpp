@@ -50,6 +50,9 @@ SignalPanel::SignalPanel(QWidget* parent) : QWidget(parent) {
                       QStringLiteral("Network Analyzer"));
   root->addWidget(tab_widget_);
 
+  connect(tab_widget_, &QTabWidget::currentChanged,
+          this, &SignalPanel::onTabChanged);
+
   // Both tabs start disabled until a controller is attached.
   setSigTabEnabled(false);
   setNaTabEnabled(false);
@@ -747,6 +750,26 @@ void SignalPanel::onConnectClicked() {
   }
 }
 
+void SignalPanel::onTabChanged(int index) {
+  using State = mwa::hardware::DeviceInterface::DeviceState;
+
+  mwa::hardware::DeviceInterface* ctrl = nullptr;
+  if (index == 0) {
+    ctrl = sig_controller_;
+  } else if (index == 1) {
+    ctrl = na_controller_;
+  }
+
+  const auto state =
+      (ctrl != nullptr) ? ctrl->state() : State::kDisconnected;
+  const bool connected = (state == State::kConnected);
+
+  applyStatusStyle(state);
+  btn_connect_->setText(
+      connected ? QStringLiteral("Disconnect")
+                : QStringLiteral("Connect"));
+}
+
 // ---------------------------------------------------------------------------
 // Slots — Signal Generator
 // ---------------------------------------------------------------------------
@@ -756,12 +779,17 @@ void SignalPanel::onSigStateChanged(
   using State = mwa::hardware::DeviceInterface::DeviceState;
   const bool connected = (new_state == State::kConnected);
 
-  applyStatusStyle(new_state);
   setSigTabEnabled(connected);
 
-  btn_connect_->setText(
-      connected ? QStringLiteral("Disconnect")
-                : QStringLiteral("Connect"));
+  // Only update shared widgets when this tab is active, or when
+  // no NA controller is attached (so there's no conflict).
+  if (tab_widget_->currentIndex() == 0 ||
+      na_controller_ == nullptr) {
+    applyStatusStyle(new_state);
+    btn_connect_->setText(
+        connected ? QStringLiteral("Disconnect")
+                  : QStringLiteral("Connect"));
+  }
 }
 
 void SignalPanel::onSigFrequencyChanged() {
@@ -923,12 +951,17 @@ void SignalPanel::onNaStateChanged(
   using State = mwa::hardware::DeviceInterface::DeviceState;
   const bool connected = (new_state == State::kConnected);
 
-  applyStatusStyle(new_state);
   setNaTabEnabled(connected);
 
-  btn_connect_->setText(
-      connected ? QStringLiteral("Disconnect")
-                : QStringLiteral("Connect"));
+  // Only update shared widgets when this tab is active, or when
+  // no Sig Gen controller is attached (so there's no conflict).
+  if (tab_widget_->currentIndex() == 1 ||
+      sig_controller_ == nullptr) {
+    applyStatusStyle(new_state);
+    btn_connect_->setText(
+        connected ? QStringLiteral("Disconnect")
+                  : QStringLiteral("Connect"));
+  }
 
   if (connected) {
     setNaMeasurementState(

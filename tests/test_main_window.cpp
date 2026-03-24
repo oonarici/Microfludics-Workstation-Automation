@@ -401,11 +401,11 @@ void TestMainWindow::test_actionToggleLeftDock_isCheckable() {
 void TestMainWindow::test_actionToggleLeftDock_isInitiallyChecked() {
   auto* action = window_->findChild<QAction*>("actionToggleLeftDock");
   QVERIFY(action != nullptr);
-  // With tabified device panel docks in headless mode, the dock's
-  // visibilityChanged(false) unchecks the action.  The action is
-  // still functional — it toggles the dock when the window is shown.
-  QVERIFY2(action->isCheckable(),
-           "actionToggleLeftDock must be checkable");
+  // In headless mode tabified docks may fire visibilityChanged(false)
+  // which unchecks the action. Skip the checked-state assertion here;
+  // the isCheckable test above already covers the toggle capability.
+  QSKIP("Headless tabified docks uncheck the action; "
+        "cannot reliably assert isChecked()");
 }
 
 void TestMainWindow::test_actionToggleBottomDock_isEnabled() {
@@ -787,9 +787,9 @@ void TestMainWindow::test_multipleLogMessages_lastEventShowsMostRecent() {
                "lblLastEvent must show the most recent message "
                "'%1', actual: '%2'")
                .arg(second, lbl->text())));
-  QVERIFY2(!lbl->text().contains(first) || lbl->text().contains(second),
-           "lblLastEvent must always reflect the most recently logged "
-           "message");
+  QVERIFY2(!lbl->text().contains(first),
+           "lblLastEvent must not still show the first message "
+           "after a second message was logged");
 }
 
 void TestMainWindow::test_rapidToggleDock_doesNotCrash() {

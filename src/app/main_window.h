@@ -229,8 +229,10 @@ class MainWindow : public QMainWindow {
   // Device controllers (owned by this window; currently mock implementations)
   mwa::hardware::LedControllerInterface* led_controller_{nullptr};
   mwa::hardware::PumpControllerInterface* pump_controller_{nullptr};
-  mwa::hardware::SignalGeneratorControllerInterface* sig_gen_controller_{nullptr};
-  mwa::hardware::NetworkAnalyzerControllerInterface* net_analyzer_controller_{nullptr};
+  mwa::hardware::SignalGeneratorControllerInterface*
+      sig_gen_controller_{nullptr};
+  mwa::hardware::NetworkAnalyzerControllerInterface*
+      net_analyzer_controller_{nullptr};
   mwa::hardware::CameraControllerInterface* camera_controller_{nullptr};
   mwa::hardware::StageControllerInterface* stage_controller_{nullptr};
 

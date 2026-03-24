@@ -137,6 +137,14 @@ class SignalPanel : public QWidget {
    */
   void onConnectClicked();
 
+  /**
+   * @brief Refresh the shared status dot and connect button
+   *        when the user switches between Signal Generator and
+   *        Network Analyzer tabs.
+   * @param index The newly active tab index (0 = Sig Gen, 1 = NA).
+   */
+  void onTabChanged(int index);
+
   // ---- Signal Generator slots ---------------------------------------------
 
   /**

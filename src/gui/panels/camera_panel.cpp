@@ -425,6 +425,12 @@ void CameraPanel::onStateChanged(
                                   : QStringLiteral("Connect"));
 
   if (!connected) {
+    // Cancel pending debounce timers so they don't fire after
+    // the controller is gone.
+    timer_exposure_->stop();
+    timer_gain_->stop();
+    timer_roi_->stop();
+
     // Reset any in-progress capture state before disabling controls,
     // because setCaptureActive(false) re-enables acquisition widgets.
     setCaptureActive(false);

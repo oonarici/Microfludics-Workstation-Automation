@@ -441,6 +441,7 @@ void StagePanel::onStateChanged(
   setMotionControlsEnabled(connected);
 
   if (!connected) {
+    timer_speed_->stop();
     lbl_state_text_->setText(QStringLiteral("Idle"));
   }
 }

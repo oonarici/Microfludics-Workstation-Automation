@@ -776,9 +776,11 @@ class TestStagePanel : public QObject {
 
     auto* grp = panel_->findChild<QGroupBox*>(
         QStringLiteral("grpJog"));
-    // Controller was re-attached but it is still kDisconnected
-    // (connectSync was only done once, before swaps)
-    QVERIFY(!grp->isEnabled() || grp->isEnabled());
+    // Controller was connected via connectSync before swaps and
+    // stays in kConnected, so re-attaching syncs that state.
+    QVERIFY2(grp->isEnabled(),
+             "grpJog must be enabled because the re-attached "
+             "controller is still in kConnected state");
   }
 };
 

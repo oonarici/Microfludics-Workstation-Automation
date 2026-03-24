@@ -21,8 +21,19 @@
 #include <QVBoxLayout>
 
 #include "core/settings_manager.h"
+#include "gui/panels/camera_panel.h"
+#include "gui/panels/led_panel.h"
+#include "gui/panels/pump_panel.h"
+#include "gui/panels/signal_panel.h"
+#include "gui/panels/stage_panel.h"
 #include "gui/widgets/device_status_dashboard.h"
 #include "gui/widgets/log_panel.h"
+#include "hardware/camera/mock_camera_controller.h"
+#include "hardware/led/mock_led_controller.h"
+#include "hardware/network_analyzer/mock_network_analyzer_controller.h"
+#include "hardware/pump/mock_pump_controller.h"
+#include "hardware/signal_generator/mock_signal_generator_controller.h"
+#include "hardware/stage/mock_stage_controller.h"
 
 namespace mwa::app {
 
@@ -51,6 +62,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
   createToolbar();
   createCentralWidget();
   createDocks();
+  createDevicePanels();
   createStatusBar();
   connectSignals();
   restoreSettings();
@@ -365,6 +377,104 @@ void MainWindow::createDocks() {
   dock_log_panel_->setWidget(log_panel);
   addDockWidget(Qt::BottomDockWidgetArea, dock_log_panel_);
   resizeDocks({dock_log_panel_}, {150}, Qt::Vertical);
+}
+
+// ---- createDevicePanels -----------------------------------------------
+
+void MainWindow::createDevicePanels() {
+  // Create mock controllers (owned by MainWindow)
+  mock_led_ = new mwa::hardware::MockLedController(this);
+  mock_pump_ = new mwa::hardware::MockPumpController(this);
+  mock_sig_gen_ =
+      new mwa::hardware::MockSignalGeneratorController(this);
+  mock_net_analyzer_ =
+      new mwa::hardware::MockNetworkAnalyzerController(this);
+  mock_camera_ = new mwa::hardware::MockCameraController(this);
+  mock_stage_ = new mwa::hardware::MockStageController(this);
+
+  // LED Panel
+  dock_led_panel_ =
+      new QDockWidget(QStringLiteral("LED"), this);
+  dock_led_panel_->setObjectName(QStringLiteral("dockLedPanel"));
+  dock_led_panel_->setFeatures(
+      QDockWidget::DockWidgetClosable |
+      QDockWidget::DockWidgetMovable |
+      QDockWidget::DockWidgetFloatable);
+  led_panel_ = new mwa::gui::LedPanel(dock_led_panel_);
+  led_panel_->setController(mock_led_);
+  dock_led_panel_->setWidget(led_panel_);
+  addDockWidget(Qt::LeftDockWidgetArea, dock_led_panel_);
+
+  // Pump Panel
+  dock_pump_panel_ =
+      new QDockWidget(QStringLiteral("Syringe Pump"), this);
+  dock_pump_panel_->setObjectName(
+      QStringLiteral("dockPumpPanel"));
+  dock_pump_panel_->setFeatures(
+      QDockWidget::DockWidgetClosable |
+      QDockWidget::DockWidgetMovable |
+      QDockWidget::DockWidgetFloatable);
+  pump_panel_ = new mwa::gui::PumpPanel(dock_pump_panel_);
+  pump_panel_->setController(mock_pump_);
+  dock_pump_panel_->setWidget(pump_panel_);
+  addDockWidget(Qt::LeftDockWidgetArea, dock_pump_panel_);
+
+  // Signal / Network Analyzer Panel
+  dock_signal_panel_ =
+      new QDockWidget(QStringLiteral("Signal / NA"), this);
+  dock_signal_panel_->setObjectName(
+      QStringLiteral("dockSignalPanel"));
+  dock_signal_panel_->setFeatures(
+      QDockWidget::DockWidgetClosable |
+      QDockWidget::DockWidgetMovable |
+      QDockWidget::DockWidgetFloatable);
+  signal_panel_ =
+      new mwa::gui::SignalPanel(dock_signal_panel_);
+  signal_panel_->setSignalGeneratorController(mock_sig_gen_);
+  signal_panel_->setNetworkAnalyzerController(
+      mock_net_analyzer_);
+  dock_signal_panel_->setWidget(signal_panel_);
+  addDockWidget(Qt::LeftDockWidgetArea, dock_signal_panel_);
+
+  // Camera Panel
+  dock_camera_panel_ =
+      new QDockWidget(QStringLiteral("Camera"), this);
+  dock_camera_panel_->setObjectName(
+      QStringLiteral("dockCameraPanel"));
+  dock_camera_panel_->setFeatures(
+      QDockWidget::DockWidgetClosable |
+      QDockWidget::DockWidgetMovable |
+      QDockWidget::DockWidgetFloatable);
+  camera_panel_ =
+      new mwa::gui::CameraPanel(dock_camera_panel_);
+  camera_panel_->setController(mock_camera_);
+  dock_camera_panel_->setWidget(camera_panel_);
+  addDockWidget(Qt::LeftDockWidgetArea, dock_camera_panel_);
+
+  // Stage Panel
+  dock_stage_panel_ =
+      new QDockWidget(QStringLiteral("XYZ Stage"), this);
+  dock_stage_panel_->setObjectName(
+      QStringLiteral("dockStagePanel"));
+  dock_stage_panel_->setFeatures(
+      QDockWidget::DockWidgetClosable |
+      QDockWidget::DockWidgetMovable |
+      QDockWidget::DockWidgetFloatable);
+  stage_panel_ =
+      new mwa::gui::StagePanel(dock_stage_panel_);
+  stage_panel_->setController(mock_stage_);
+  dock_stage_panel_->setWidget(stage_panel_);
+  addDockWidget(Qt::LeftDockWidgetArea, dock_stage_panel_);
+
+  // Tab the device panels together in the left dock area
+  tabifyDockWidget(dock_device_panels_, dock_led_panel_);
+  tabifyDockWidget(dock_led_panel_, dock_pump_panel_);
+  tabifyDockWidget(dock_pump_panel_, dock_signal_panel_);
+  tabifyDockWidget(dock_signal_panel_, dock_camera_panel_);
+  tabifyDockWidget(dock_camera_panel_, dock_stage_panel_);
+
+  // Show the dashboard (first tab) by default
+  dock_device_panels_->raise();
 }
 
 // ---- createStatusBar --------------------------------------------------

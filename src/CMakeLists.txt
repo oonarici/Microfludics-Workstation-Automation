@@ -9,6 +9,7 @@ target_link_libraries(MWA PRIVATE
   MwaApp
   MwaCore
   MwaHardware
+  MwaPanels
   Qt6::Core
   Qt6::Gui
   Qt6::Widgets

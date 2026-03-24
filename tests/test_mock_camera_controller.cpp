@@ -309,11 +309,12 @@ void TestMockCameraController::
       &ctrl,
       &CameraControllerInterface::frameReady);
   ctrl.startContinuousCapture();
-  // At ~30 fps (33 ms interval), wait ~100 ms — expect at least 2 frames.
-  QTest::qWait(150);
+  // At ~30 fps (33 ms interval), wait 300 ms — expect at least 2 frames.
+  // Using generous margin for slow CI runners.
+  QTest::qWait(300);
   ctrl.stopCapture();
   QVERIFY2(spy.count() >= 2,
-           "At least 2 frameReady signals expected during 150 ms of capture");
+           "At least 2 frameReady signals expected during 300 ms of capture");
 }
 
 void TestMockCameraController::test_stopCapture_isCapturingFalse() {

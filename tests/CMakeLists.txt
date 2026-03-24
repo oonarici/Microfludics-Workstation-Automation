@@ -206,3 +206,88 @@ target_link_libraries(test_mock_stage_controller PRIVATE
 )
 
 add_test(NAME test_mock_stage_controller COMMAND test_mock_stage_controller)
+
+# ---------------------------------------------------------------------------
+# LedPanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_led_panel test_led_panel.cpp)
+
+target_link_libraries(test_led_panel PRIVATE
+  MwaPanels
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_led_panel COMMAND test_led_panel)
+
+# ---------------------------------------------------------------------------
+# PumpPanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_pump_panel test_pump_panel.cpp)
+
+target_link_libraries(test_pump_panel PRIVATE
+  MwaPanels
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_pump_panel COMMAND test_pump_panel)
+
+# ---------------------------------------------------------------------------
+# SignalPanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_signal_panel test_signal_panel.cpp)
+
+target_link_libraries(test_signal_panel PRIVATE
+  MwaPanels
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_signal_panel COMMAND test_signal_panel)
+
+# ---------------------------------------------------------------------------
+# CameraPanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_camera_panel test_camera_panel.cpp)
+
+target_link_libraries(test_camera_panel PRIVATE
+  MwaPanels
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_camera_panel COMMAND test_camera_panel)
+
+# ---------------------------------------------------------------------------
+# StagePanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_stage_panel test_stage_panel.cpp)
+
+target_link_libraries(test_stage_panel PRIVATE
+  MwaPanels
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_stage_panel COMMAND test_stage_panel)

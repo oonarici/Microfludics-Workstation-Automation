@@ -25,6 +25,25 @@
 
 #include "core/logger.h"
 
+// Forward declarations for device panels
+namespace mwa::gui {
+class LedPanel;
+class PumpPanel;
+class SignalPanel;
+class CameraPanel;
+class StagePanel;
+}  // namespace mwa::gui
+
+// Forward declarations for device controller interfaces
+namespace mwa::hardware {
+class LedControllerInterface;
+class PumpControllerInterface;
+class SignalGeneratorControllerInterface;
+class NetworkAnalyzerControllerInterface;
+class CameraControllerInterface;
+class StageControllerInterface;
+}  // namespace mwa::hardware
+
 namespace mwa::app {
 
 /**
@@ -135,6 +154,11 @@ class MainWindow : public QMainWindow {
   void createStatusBar();
 
   /**
+   * @brief Create mock controllers and device panels in left dock area.
+   */
+  void createDevicePanels();
+
+  /**
    * @brief Connect all signals and slots after widgets are created.
    */
   void connectSignals();
@@ -187,6 +211,30 @@ class MainWindow : public QMainWindow {
 
   QDockWidget* dock_device_panels_{nullptr};
   QDockWidget* dock_log_panel_{nullptr};
+
+  // Device panel docks
+  QDockWidget* dock_led_panel_{nullptr};
+  QDockWidget* dock_pump_panel_{nullptr};
+  QDockWidget* dock_signal_panel_{nullptr};
+  QDockWidget* dock_camera_panel_{nullptr};
+  QDockWidget* dock_stage_panel_{nullptr};
+
+  // Device panels (owned by their dock widgets)
+  mwa::gui::LedPanel* led_panel_{nullptr};
+  mwa::gui::PumpPanel* pump_panel_{nullptr};
+  mwa::gui::SignalPanel* signal_panel_{nullptr};
+  mwa::gui::CameraPanel* camera_panel_{nullptr};
+  mwa::gui::StagePanel* stage_panel_{nullptr};
+
+  // Device controllers (owned by this window; currently mock implementations)
+  mwa::hardware::LedControllerInterface* led_controller_{nullptr};
+  mwa::hardware::PumpControllerInterface* pump_controller_{nullptr};
+  mwa::hardware::SignalGeneratorControllerInterface*
+      sig_gen_controller_{nullptr};
+  mwa::hardware::NetworkAnalyzerControllerInterface*
+      net_analyzer_controller_{nullptr};
+  mwa::hardware::CameraControllerInterface* camera_controller_{nullptr};
+  mwa::hardware::StageControllerInterface* stage_controller_{nullptr};
 
   // Status bar labels (owned by the status bar via addWidget)
   QLabel* lbl_device_summary_{nullptr};

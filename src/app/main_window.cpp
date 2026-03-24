@@ -21,8 +21,19 @@
 #include <QVBoxLayout>
 
 #include "core/settings_manager.h"
+#include "gui/panels/camera_panel.h"
+#include "gui/panels/led_panel.h"
+#include "gui/panels/pump_panel.h"
+#include "gui/panels/signal_panel.h"
+#include "gui/panels/stage_panel.h"
 #include "gui/widgets/device_status_dashboard.h"
 #include "gui/widgets/log_panel.h"
+#include "hardware/camera/mock_camera_controller.h"
+#include "hardware/led/mock_led_controller.h"
+#include "hardware/network_analyzer/mock_network_analyzer_controller.h"
+#include "hardware/pump/mock_pump_controller.h"
+#include "hardware/signal_generator/mock_signal_generator_controller.h"
+#include "hardware/stage/mock_stage_controller.h"
 
 namespace mwa::app {
 
@@ -51,6 +62,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
   createToolbar();
   createCentralWidget();
   createDocks();
+  createDevicePanels();
   createStatusBar();
   connectSignals();
   restoreSettings();
@@ -365,6 +377,78 @@ void MainWindow::createDocks() {
   dock_log_panel_->setWidget(log_panel);
   addDockWidget(Qt::BottomDockWidgetArea, dock_log_panel_);
   resizeDocks({dock_log_panel_}, {150}, Qt::Vertical);
+}
+
+// ---- createDevicePanels -----------------------------------------------
+
+void MainWindow::createDevicePanels() {
+  // Create device controllers (mock implementations for now).
+  led_controller_ = new mwa::hardware::MockLedController(this);
+  pump_controller_ = new mwa::hardware::MockPumpController(this);
+  sig_gen_controller_ =
+      new mwa::hardware::MockSignalGeneratorController(this);
+  net_analyzer_controller_ =
+      new mwa::hardware::MockNetworkAnalyzerController(this);
+  camera_controller_ =
+      new mwa::hardware::MockCameraController(this);
+  stage_controller_ =
+      new mwa::hardware::MockStageController(this);
+
+  // Helper: create a device panel dock widget with standard features.
+  auto makeDock = [this](const QString& title,
+                         const QString& object_name,
+                         QWidget* panel) {
+    auto* dock = new QDockWidget(title, this);
+    dock->setObjectName(object_name);
+    dock->setFeatures(QDockWidget::DockWidgetClosable |
+                      QDockWidget::DockWidgetMovable |
+                      QDockWidget::DockWidgetFloatable);
+    dock->setWidget(panel);
+    addDockWidget(Qt::LeftDockWidgetArea, dock);
+    return dock;
+  };
+
+  led_panel_ = new mwa::gui::LedPanel(this);
+  led_panel_->setController(led_controller_);
+  dock_led_panel_ = makeDock(
+      QStringLiteral("LED"),
+      QStringLiteral("dockLedPanel"), led_panel_);
+
+  pump_panel_ = new mwa::gui::PumpPanel(this);
+  pump_panel_->setController(pump_controller_);
+  dock_pump_panel_ = makeDock(
+      QStringLiteral("Syringe Pump"),
+      QStringLiteral("dockPumpPanel"), pump_panel_);
+
+  signal_panel_ = new mwa::gui::SignalPanel(this);
+  signal_panel_->setSignalGeneratorController(sig_gen_controller_);
+  signal_panel_->setNetworkAnalyzerController(
+      net_analyzer_controller_);
+  dock_signal_panel_ = makeDock(
+      QStringLiteral("Signal / NA"),
+      QStringLiteral("dockSignalPanel"), signal_panel_);
+
+  camera_panel_ = new mwa::gui::CameraPanel(this);
+  camera_panel_->setController(camera_controller_);
+  dock_camera_panel_ = makeDock(
+      QStringLiteral("Camera"),
+      QStringLiteral("dockCameraPanel"), camera_panel_);
+
+  stage_panel_ = new mwa::gui::StagePanel(this);
+  stage_panel_->setController(stage_controller_);
+  dock_stage_panel_ = makeDock(
+      QStringLiteral("XYZ Stage"),
+      QStringLiteral("dockStagePanel"), stage_panel_);
+
+  // Tab the device panels together in the left dock area
+  tabifyDockWidget(dock_device_panels_, dock_led_panel_);
+  tabifyDockWidget(dock_led_panel_, dock_pump_panel_);
+  tabifyDockWidget(dock_pump_panel_, dock_signal_panel_);
+  tabifyDockWidget(dock_signal_panel_, dock_camera_panel_);
+  tabifyDockWidget(dock_camera_panel_, dock_stage_panel_);
+
+  // Show the dashboard (first tab) by default
+  dock_device_panels_->raise();
 }
 
 // ---- createStatusBar --------------------------------------------------

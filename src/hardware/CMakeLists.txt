@@ -1,6 +1,8 @@
 add_library(MwaHardware STATIC
   device_interface.h
   device_interface.cpp
+  command_queue.h
+  command_queue.cpp
 
   # LED
   led/led_controller_interface.h

@@ -18,6 +18,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLCDNumber>
+
+#include "gui/panels/panel_colors.h"
 #include <QPushButton>
 #include <QSlider>
 #include <QComboBox>
@@ -206,14 +208,6 @@ class LedPanel : public QWidget {
   // ---- Constants ----------------------------------------------------------
   /// Slider integer scale factor (slider 0–1000 ↔ percent 0.0–100.0).
   static constexpr int kSliderScale = 10;
-  /// Color hex for connected state.
-  static constexpr auto kColorConnected    = "#27AE60";
-  /// Color hex for disconnected state.
-  static constexpr auto kColorDisconnected = "#95A5A6";
-  /// Color hex for error state.
-  static constexpr auto kColorError        = "#E74C3C";
-  /// Color hex for connecting state.
-  static constexpr auto kColorConnecting   = "#F39C12";
 };
 
 }  // namespace mwa::gui

@@ -31,6 +31,7 @@
 #include <QTabWidget>
 #include <QWidget>
 
+#include "gui/panels/panel_colors.h"
 #include "hardware/network_analyzer/network_analyzer_controller_interface.h"
 #include "hardware/signal_generator/signal_generator_controller_interface.h"
 
@@ -514,12 +515,6 @@ class SignalPanel : public QWidget {
       nullptr};
 
   // ---- Constants ----------------------------------------------------------
-  static constexpr auto kColorConnected    = "#27AE60";  ///< Green.
-  static constexpr auto kColorDisconnected = "#95A5A6";  ///< Gray.
-  static constexpr auto kColorError        = "#E74C3C";  ///< Red.
-  static constexpr auto kColorConnecting   = "#F39C12";  ///< Orange.
-  static constexpr auto kColorActive       = "#3498DB";  ///< Blue.
-
   /// Frequency unit multipliers indexed by combo position.
   static constexpr double kUnitMultipliers[3] = {1.0, 1000.0, 1000000.0};
 

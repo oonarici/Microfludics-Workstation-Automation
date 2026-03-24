@@ -1033,24 +1033,26 @@ void SignalPanel::onNaNumPointsChanged(int points) {
 // Slots — clipboard helpers
 // ---------------------------------------------------------------------------
 
+static void copyLabelToClipboard(QLabel* label) {
+  if (label != nullptr) {
+    QApplication::clipboard()->setText(label->text());
+  }
+}
+
 void SignalPanel::onSigFreqDisplayDoubleClicked() {
-  QApplication::clipboard()->setText(
-      lbl_sig_freq_display_->text());
+  copyLabelToClipboard(lbl_sig_freq_display_);
 }
 
 void SignalPanel::onSigAmpDisplayDoubleClicked() {
-  QApplication::clipboard()->setText(
-      lbl_sig_amp_display_->text());
+  copyLabelToClipboard(lbl_sig_amp_display_);
 }
 
 void SignalPanel::onSigWaveformDisplayDoubleClicked() {
-  QApplication::clipboard()->setText(
-      lbl_sig_waveform_display_->text());
+  copyLabelToClipboard(lbl_sig_waveform_display_);
 }
 
 void SignalPanel::onNaSparamDisplayDoubleClicked() {
-  QApplication::clipboard()->setText(
-      lbl_na_sparam_display_->text());
+  copyLabelToClipboard(lbl_na_sparam_display_);
 }
 
 }  // namespace mwa::gui

@@ -14,14 +14,16 @@
 
 #pragma once
 
+#include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QLabel>
 #include <QLCDNumber>
 #include <QProgressBar>
 #include <QPushButton>
-#include <QComboBox>
 #include <QWidget>
+
+#include "gui/panels/panel_colors.h"
 
 #include "hardware/pump/pump_controller_interface.h"
 
@@ -267,16 +269,6 @@ class PumpPanel : public QWidget {
   bool is_refilling_{false};
 
   // ---- Constants ----------------------------------------------------------
-  /// Color hex for connected / idle state.
-  static constexpr auto kColorConnected    = "#27AE60";
-  /// Color hex for disconnected state.
-  static constexpr auto kColorDisconnected = "#95A5A6";
-  /// Color hex for error state.
-  static constexpr auto kColorError        = "#E74C3C";
-  /// Color hex for connecting state.
-  static constexpr auto kColorConnecting   = "#F39C12";
-  /// Color hex for active infusing / refilling state.
-  static constexpr auto kColorActive       = "#2980B9";
   /// Dot widget fixed size in pixels.
   static constexpr int kDotSize = 12;
 };

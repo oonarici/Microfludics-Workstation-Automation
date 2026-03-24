@@ -34,14 +34,14 @@ class CameraPanel;
 class StagePanel;
 }  // namespace mwa::gui
 
-// Forward declarations for mock controllers
+// Forward declarations for device controller interfaces
 namespace mwa::hardware {
-class MockLedController;
-class MockPumpController;
-class MockSignalGeneratorController;
-class MockNetworkAnalyzerController;
-class MockCameraController;
-class MockStageController;
+class LedControllerInterface;
+class PumpControllerInterface;
+class SignalGeneratorControllerInterface;
+class NetworkAnalyzerControllerInterface;
+class CameraControllerInterface;
+class StageControllerInterface;
 }  // namespace mwa::hardware
 
 namespace mwa::app {
@@ -226,13 +226,13 @@ class MainWindow : public QMainWindow {
   mwa::gui::CameraPanel* camera_panel_{nullptr};
   mwa::gui::StagePanel* stage_panel_{nullptr};
 
-  // Mock controllers (owned by this window for now)
-  mwa::hardware::MockLedController* mock_led_{nullptr};
-  mwa::hardware::MockPumpController* mock_pump_{nullptr};
-  mwa::hardware::MockSignalGeneratorController* mock_sig_gen_{nullptr};
-  mwa::hardware::MockNetworkAnalyzerController* mock_net_analyzer_{nullptr};
-  mwa::hardware::MockCameraController* mock_camera_{nullptr};
-  mwa::hardware::MockStageController* mock_stage_{nullptr};
+  // Device controllers (owned by this window; currently mock implementations)
+  mwa::hardware::LedControllerInterface* led_controller_{nullptr};
+  mwa::hardware::PumpControllerInterface* pump_controller_{nullptr};
+  mwa::hardware::SignalGeneratorControllerInterface* sig_gen_controller_{nullptr};
+  mwa::hardware::NetworkAnalyzerControllerInterface* net_analyzer_controller_{nullptr};
+  mwa::hardware::CameraControllerInterface* camera_controller_{nullptr};
+  mwa::hardware::StageControllerInterface* stage_controller_{nullptr};
 
   // Status bar labels (owned by the status bar via addWidget)
   QLabel* lbl_device_summary_{nullptr};

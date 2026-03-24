@@ -35,7 +35,6 @@ LedPanel::LedPanel(QWidget* parent) : QWidget(parent) {
 
 void LedPanel::setController(
     mwa::hardware::LedControllerInterface* controller) {
-  // Disconnect old controller signals if any.
   if (controller_ != nullptr) {
     disconnect(controller_, nullptr, this, nullptr);
   }
@@ -111,7 +110,6 @@ QGroupBox* LedPanel::createControlsGroup() {
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(8);
 
-  // Power toggle button.
   btn_power_ = new QPushButton(
       QStringLiteral("LED OFF"), grp_controls_);
   btn_power_->setObjectName(QStringLiteral("btnPower"));
@@ -120,7 +118,6 @@ QGroupBox* LedPanel::createControlsGroup() {
   btn_power_->setMinimumHeight(36);
   layout->addWidget(btn_power_);
 
-  // Intensity spinbox row.
   auto* intensity_row = new QWidget(grp_controls_);
   auto* intensity_row_layout = new QHBoxLayout(intensity_row);
   intensity_row_layout->setContentsMargins(0, 0, 0, 0);
@@ -144,7 +141,6 @@ QGroupBox* LedPanel::createControlsGroup() {
 
   layout->addWidget(intensity_row);
 
-  // Intensity slider.
   sld_intensity_ = new QSlider(Qt::Horizontal, grp_controls_);
   sld_intensity_->setObjectName(
       QStringLiteral("sldIntensity"));
@@ -152,7 +148,6 @@ QGroupBox* LedPanel::createControlsGroup() {
   sld_intensity_->setValue(0);
   layout->addWidget(sld_intensity_);
 
-  // Internal connections: slider ↔ spinbox display sync.
   connect(sld_intensity_, &QSlider::valueChanged,
           this, &LedPanel::onSliderValueChanged);
   connect(sld_intensity_, &QSlider::sliderReleased,
@@ -175,7 +170,6 @@ QGroupBox* LedPanel::createStatusGroup() {
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(8);
 
-  // Power state label.
   lbl_power_value_ = new QLabel(
       QStringLiteral("\u25CF OFF"), grp_status_);
   lbl_power_value_->setObjectName(
@@ -186,7 +180,6 @@ QGroupBox* LedPanel::createStatusGroup() {
   layout->addRow(QStringLiteral("Power:"),
                  lbl_power_value_);
 
-  // LCD intensity readout.
   lcd_intensity_ = new QLCDNumber(5, grp_status_);
   lcd_intensity_->setObjectName(
       QStringLiteral("lcdIntensity"));
@@ -196,7 +189,6 @@ QGroupBox* LedPanel::createStatusGroup() {
   layout->addRow(QStringLiteral("Intensity:"),
                  lcd_intensity_);
 
-  // Device state text.
   lbl_device_state_ = new QLabel(
       QStringLiteral("Disconnected"), grp_status_);
   lbl_device_state_->setObjectName(

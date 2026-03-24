@@ -25,6 +25,7 @@
 #include <QTimer>
 #include <QWidget>
 
+#include "gui/panels/panel_colors.h"
 #include "hardware/camera/camera_controller_interface.h"
 
 namespace mwa::gui {
@@ -303,16 +304,6 @@ class CameraPanel : public QWidget {
   static constexpr int kPreviewHeight = 120;
   /// Debounce interval in milliseconds.
   static constexpr int kDebounceMs = 300;
-  /// Color hex for connected/idle state.
-  static constexpr auto kColorConnected    = "#27AE60";
-  /// Color hex for disconnected state.
-  static constexpr auto kColorDisconnected = "#95A5A6";
-  /// Color hex for error state.
-  static constexpr auto kColorError        = "#E74C3C";
-  /// Color hex for connecting state.
-  static constexpr auto kColorConnecting   = "#F39C12";
-  /// Color hex for capturing state.
-  static constexpr auto kColorCapturing    = "#2980B9";
 };
 
 }  // namespace mwa::gui

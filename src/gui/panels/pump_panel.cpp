@@ -35,7 +35,6 @@ PumpPanel::PumpPanel(QWidget* parent) : QWidget(parent) {
 
 void PumpPanel::setController(
     mwa::hardware::PumpControllerInterface* controller) {
-  // Disconnect old controller signals if any.
   if (controller_ != nullptr) {
     disconnect(controller_, nullptr, this, nullptr);
   }
@@ -98,7 +97,6 @@ QGroupBox* PumpPanel::createConnectionGroup() {
   cmb_port_->addItem(QStringLiteral("Mock Pump"));
   layout->addRow(QStringLiteral("Port:"), cmb_port_);
 
-  // Status row: dot + text side by side.
   auto* status_row = new QWidget(grp_connection_);
   auto* status_row_layout = new QHBoxLayout(status_row);
   status_row_layout->setContentsMargins(0, 0, 0, 0);
@@ -144,7 +142,6 @@ QGroupBox* PumpPanel::createControlsGroup() {
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(8);
 
-  // Flow rate spinbox.
   spn_flow_rate_ = new QDoubleSpinBox(grp_controls_);
   spn_flow_rate_->setObjectName(
       QStringLiteral("spnFlowRate"));
@@ -156,7 +153,6 @@ QGroupBox* PumpPanel::createControlsGroup() {
   layout->addRow(QStringLiteral("Flow Rate:"),
                  spn_flow_rate_);
 
-  // Target volume spinbox.
   spn_volume_ = new QDoubleSpinBox(grp_controls_);
   spn_volume_->setObjectName(QStringLiteral("spnVolume"));
   spn_volume_->setRange(0.01, 10000.00);
@@ -167,7 +163,6 @@ QGroupBox* PumpPanel::createControlsGroup() {
   layout->addRow(QStringLiteral("Target Volume:"),
                  spn_volume_);
 
-  // Action buttons row.
   auto* btn_row = new QWidget(grp_controls_);
   auto* btn_row_layout = new QHBoxLayout(btn_row);
   btn_row_layout->setContentsMargins(0, 0, 0, 0);
@@ -194,7 +189,6 @@ QGroupBox* PumpPanel::createControlsGroup() {
 
   layout->addRow(btn_row);
 
-  // Internal connections.
   connect(spn_flow_rate_,
           &QDoubleSpinBox::valueChanged,
           this, &PumpPanel::onFlowRateValueChanged);
@@ -220,7 +214,6 @@ QGroupBox* PumpPanel::createStatusGroup() {
   layout->setContentsMargins(8, 8, 8, 8);
   layout->setSpacing(8);
 
-  // Position LCD.
   lcd_position_ = new QLCDNumber(7, grp_status_);
   lcd_position_->setObjectName(
       QStringLiteral("lcdPosition"));
@@ -230,7 +223,6 @@ QGroupBox* PumpPanel::createStatusGroup() {
   layout->addRow(QStringLiteral("Position (\u00B5L):"),
                  lcd_position_);
 
-  // Sub-state row: dot + text.
   auto* state_row = new QWidget(grp_status_);
   auto* state_row_layout = new QHBoxLayout(state_row);
   state_row_layout->setContentsMargins(0, 0, 0, 0);
@@ -255,7 +247,6 @@ QGroupBox* PumpPanel::createStatusGroup() {
 
   layout->addRow(QStringLiteral("State:"), state_row);
 
-  // Infusion progress bar.
   prg_infusion_ = new QProgressBar(grp_status_);
   prg_infusion_->setObjectName(
       QStringLiteral("prgInfusion"));
@@ -265,7 +256,6 @@ QGroupBox* PumpPanel::createStatusGroup() {
   layout->addRow(QStringLiteral("Progress:"),
                  prg_infusion_);
 
-  // Error label (hidden by default).
   lbl_error_ = new QLabel(grp_status_);
   lbl_error_->setObjectName(QStringLiteral("lblError"));
   lbl_error_->setStyleSheet(

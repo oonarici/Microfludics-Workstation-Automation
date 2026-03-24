@@ -132,7 +132,6 @@ QGroupBox* StagePanel::createJogGroup() {
   outer->setContentsMargins(8, 8, 8, 8);
   outer->setSpacing(8);
 
-  // Step size selector.
   auto* step_row = new QHBoxLayout();
   step_row->setSpacing(6);
   step_row->addWidget(
@@ -141,16 +140,15 @@ QGroupBox* StagePanel::createJogGroup() {
   cmb_step_size_ = new QComboBox(grp_jog_);
   cmb_step_size_->setObjectName(
       QStringLiteral("cmbStepSize"));
-  cmb_step_size_->addItem(QStringLiteral("0.01 mm"));
-  cmb_step_size_->addItem(QStringLiteral("0.10 mm"));
-  cmb_step_size_->addItem(QStringLiteral("1.00 mm"));
-  cmb_step_size_->addItem(QStringLiteral("10.0 mm"));
+  cmb_step_size_->addItem(QStringLiteral("0.01 mm"), 0.01);
+  cmb_step_size_->addItem(QStringLiteral("0.10 mm"), 0.10);
+  cmb_step_size_->addItem(QStringLiteral("1.00 mm"), 1.00);
+  cmb_step_size_->addItem(QStringLiteral("10.0 mm"), 10.0);
   cmb_step_size_->setCurrentIndex(1);
   step_row->addWidget(cmb_step_size_);
   step_row->addStretch();
   outer->addLayout(step_row);
 
-  // XY jog grid (3x3).
   auto* xy_grid = new QGridLayout();
   xy_grid->setSpacing(4);
 
@@ -421,16 +419,9 @@ void StagePanel::setMoveButtonsEnabled(bool enabled) {
 }
 
 double StagePanel::currentStepSize() const {
-  // Step values correspond to combo index order.
-  static constexpr double kStepSizes[] = {
-      0.01, 0.10, 1.00, 10.0};
-  const int idx = cmb_step_size_->currentIndex();
-  if (idx >= 0 &&
-      idx < static_cast<int>(sizeof(kStepSizes) /
-                              sizeof(kStepSizes[0]))) {
-    return kStepSizes[idx];
-  }
-  return 1.0;
+  bool ok = false;
+  const double val = cmb_step_size_->currentData().toDouble(&ok);
+  return ok ? val : 1.0;
 }
 
 // ---------------------------------------------------------------------------
@@ -500,65 +491,22 @@ void StagePanel::onConnectClicked() {
   }
 }
 
-void StagePanel::onJogXPlus() {
+void StagePanel::jog(double dx, double dy, double dz) {
   if (controller_ == nullptr) {
     return;
   }
   const double step = currentStepSize();
   setMoveButtonsEnabled(false);
   lbl_state_text_->setText(QStringLiteral("Moving"));
-  controller_->moveRelative(step, 0.0, 0.0);
+  controller_->moveRelative(dx * step, dy * step, dz * step);
 }
 
-void StagePanel::onJogXMinus() {
-  if (controller_ == nullptr) {
-    return;
-  }
-  const double step = currentStepSize();
-  setMoveButtonsEnabled(false);
-  lbl_state_text_->setText(QStringLiteral("Moving"));
-  controller_->moveRelative(-step, 0.0, 0.0);
-}
-
-void StagePanel::onJogYPlus() {
-  if (controller_ == nullptr) {
-    return;
-  }
-  const double step = currentStepSize();
-  setMoveButtonsEnabled(false);
-  lbl_state_text_->setText(QStringLiteral("Moving"));
-  controller_->moveRelative(0.0, step, 0.0);
-}
-
-void StagePanel::onJogYMinus() {
-  if (controller_ == nullptr) {
-    return;
-  }
-  const double step = currentStepSize();
-  setMoveButtonsEnabled(false);
-  lbl_state_text_->setText(QStringLiteral("Moving"));
-  controller_->moveRelative(0.0, -step, 0.0);
-}
-
-void StagePanel::onJogZPlus() {
-  if (controller_ == nullptr) {
-    return;
-  }
-  const double step = currentStepSize();
-  setMoveButtonsEnabled(false);
-  lbl_state_text_->setText(QStringLiteral("Moving"));
-  controller_->moveRelative(0.0, 0.0, step);
-}
-
-void StagePanel::onJogZMinus() {
-  if (controller_ == nullptr) {
-    return;
-  }
-  const double step = currentStepSize();
-  setMoveButtonsEnabled(false);
-  lbl_state_text_->setText(QStringLiteral("Moving"));
-  controller_->moveRelative(0.0, 0.0, -step);
-}
+void StagePanel::onJogXPlus()  { jog( 1.0,  0.0,  0.0); }
+void StagePanel::onJogXMinus() { jog(-1.0,  0.0,  0.0); }
+void StagePanel::onJogYPlus()  { jog( 0.0,  1.0,  0.0); }
+void StagePanel::onJogYMinus() { jog( 0.0, -1.0,  0.0); }
+void StagePanel::onJogZPlus()  { jog( 0.0,  0.0,  1.0); }
+void StagePanel::onJogZMinus() { jog( 0.0,  0.0, -1.0); }
 
 void StagePanel::onHomeClicked() {
   if (controller_ == nullptr) {

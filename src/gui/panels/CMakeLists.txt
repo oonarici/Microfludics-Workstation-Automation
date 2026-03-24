@@ -1,4 +1,5 @@
 add_library(MwaPanels STATIC
+  panel_colors.h
   led_panel.h
   led_panel.cpp
   pump_panel.h

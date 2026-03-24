@@ -23,6 +23,7 @@
 #include <QTimer>
 #include <QWidget>
 
+#include "gui/panels/panel_colors.h"
 #include "hardware/stage/stage_controller_interface.h"
 
 namespace mwa::gui {
@@ -266,6 +267,19 @@ class StagePanel : public QWidget {
       mwa::hardware::DeviceInterface::DeviceState new_state);
 
   /**
+   * @brief Execute a relative jog move in the specified direction.
+   *
+   * Disables motion buttons, sets "Moving" state, and calls
+   * moveRelative() with the given axis deltas scaled by the
+   * current step size.
+   *
+   * @param dx X axis direction multiplier (-1, 0, or +1).
+   * @param dy Y axis direction multiplier (-1, 0, or +1).
+   * @param dz Z axis direction multiplier (-1, 0, or +1).
+   */
+  void jog(double dx, double dy, double dz);
+
+  /**
    * @brief Enable or disable motion control groups.
    *
    * @param enabled @c true to enable jog, abs-position, and speed
@@ -342,16 +356,6 @@ class StagePanel : public QWidget {
   static constexpr int kEmergencyStopHeight = 48;
   /// Debounce interval in milliseconds.
   static constexpr int kDebounceMs = 300;
-  /// Color hex for connected/idle state.
-  static constexpr auto kColorConnected    = "#27AE60";
-  /// Color hex for disconnected state.
-  static constexpr auto kColorDisconnected = "#95A5A6";
-  /// Color hex for error state.
-  static constexpr auto kColorError        = "#E74C3C";
-  /// Color hex for connecting state.
-  static constexpr auto kColorConnecting   = "#F39C12";
-  /// Color hex for moving/homing state.
-  static constexpr auto kColorMoving       = "#2980B9";
 };
 
 }  // namespace mwa::gui

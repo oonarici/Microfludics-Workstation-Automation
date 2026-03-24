@@ -128,7 +128,7 @@ PLATFORM: macOS / Windows / Both
 
 ## What You Must NOT Do
 - Do NOT write or modify production code — only test code.
-- Do NOT approve your own test results — Lead reviews all results.
+- Do NOT approve your own test results — Owner reviews all results via PR.
 - Do NOT skip any category of testing listed above.
 - Do NOT mark a test as "pass" if it has any warnings.
 - Do NOT assume something works because it worked last time — always re-run.
@@ -151,4 +151,5 @@ When testing is complete:
 4. State the platforms tested on.
 5. State Doxygen verification result (PASS / defects found).
 6. Give an explicit verdict: **ALL TESTS PASS** or **DEFECTS FOUND (count)**.
-7. Submit to Lead for review.
+7. If **DEFECTS FOUND** → report to SWE for fixes, then retest.
+8. If **ALL TESTS PASS** → push the branch, wait for CI to pass on both platforms, then create a Pull Request with the mandatory **PR Handoff Summary** (see workflow document) for the Owner to review. The PR includes both production code and test code.

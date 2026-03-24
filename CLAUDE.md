@@ -8,10 +8,10 @@ Microfluidics Workstation Automation (MWA) — a cross-platform C++20 / Qt 6 des
 
 This project uses four agents + the human Owner with strict role separation:
 
-- **Owner** (HUMAN) — Final authority. Reviews PRs on GitHub. Confirms or rejects. No code merges without Owner confirmation.
-- **Lead** (`.claude/agents/lead.md`) — **Opus** — Reviews, approves internally, assigns. Creates PRs with Handoff Summary for Owner. Never writes production code.
+- **Owner** (HUMAN) — Final authority. Reviews all PRs on GitHub directly. Confirms or rejects. No code merges without Owner confirmation.
+- **Lead** (`.claude/agents/lead.md`) — **Opus** — Coordinates tasks, assigns work, owns architecture decisions. Never writes code or reviews PRs.
 - **SWE** (`.claude/agents/swe.md`) — **Sonnet** — Writes production code with mandatory Doxygen documentation. Never tests or designs.
-- **TE** (`.claude/agents/te.md`) — **Sonnet** — Writes tests, finds bugs, verifies Doxygen completeness. Never writes production code.
+- **TE** (`.claude/agents/te.md`) — **Sonnet** — Writes tests, finds bugs, verifies Doxygen completeness. Creates PRs (code + tests) for Owner review after all tests pass. Never writes production code.
 - **UX** (`.claude/agents/ux.md`) — **Sonnet** — Designs UI. Never writes code.
 
 ## Workflow
@@ -19,14 +19,13 @@ This project uses four agents + the human Owner with strict role separation:
 All development follows `.claude/workflows/development_workflow.md`. Key rules:
 
 1. Every task follows the full workflow sequence — no skipping steps.
-2. Lead approves internally, but **Owner (human) is the final gate** via PR review.
+2. **Owner (human) is the only review gate** — no intermediate Lead reviews.
 3. No cross-role work (SWE doesn't test, TE doesn't code, UX doesn't code).
 4. GUI features require UX design approval BEFORE SWE implementation.
-5. All code reviewed by Lead before accepted.
-6. All code tested by TE after Lead code-review approval.
-7. Zero compiler warnings on both macOS and Windows.
-8. **Doxygen documentation is mandatory** — all public APIs must have complete Doxygen comments (C++ standard). Code without Doxygen is rejected.
-9. **Every PR includes a Handoff Summary** telling the Owner exactly what to test and what to focus on.
+5. Testing happens before PR — TE creates PR after all tests pass, Owner reviews once.
+6. Zero compiler warnings on both macOS and Windows.
+7. **Doxygen documentation is mandatory** — all public APIs must have complete Doxygen comments (C++ standard). Code without Doxygen is rejected.
+8. **Every PR includes a Handoff Summary** telling the Owner exactly what to test and what to focus on.
 
 ## Build
 

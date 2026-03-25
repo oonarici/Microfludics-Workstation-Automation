@@ -3,6 +3,10 @@ add_library(MwaHardware STATIC
   device_interface.cpp
   command_queue.h
   command_queue.cpp
+  device_manager.h
+  device_manager.cpp
+  error_handler.h
+  error_handler.cpp
 
   # LED
   led/led_controller_interface.h
@@ -37,4 +41,4 @@ add_library(MwaHardware STATIC
 
 target_include_directories(MwaHardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
-target_link_libraries(MwaHardware PUBLIC Qt6::Core Qt6::Gui)
+target_link_libraries(MwaHardware PUBLIC Qt6::Core Qt6::Gui MwaCore)

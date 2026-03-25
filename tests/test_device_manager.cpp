@@ -23,13 +23,9 @@ class TestDeviceManager : public QObject {
  private:
   void clearAllDevices() {
     auto& mgr = DeviceManager::instance();
-    // Remove all 6 types to guarantee clean state.
-    mgr.removeDevice(DeviceInterface::DeviceType::kLed);
-    mgr.removeDevice(DeviceInterface::DeviceType::kPump);
-    mgr.removeDevice(DeviceInterface::DeviceType::kSignalGenerator);
-    mgr.removeDevice(DeviceInterface::DeviceType::kNetworkAnalyzer);
-    mgr.removeDevice(DeviceInterface::DeviceType::kCamera);
-    mgr.removeDevice(DeviceInterface::DeviceType::kStage);
+    for (auto* dev : mgr.allDevices()) {
+      mgr.removeDevice(dev->deviceType());
+    }
   }
 
  private slots:

@@ -235,6 +235,16 @@ class ErrorHandler : public QObject {
   [[nodiscard]] int computeDelay(int attempt) const;
 
   /**
+   * @brief Clean up retry state and emit allRetriesFailed().
+   */
+  void exhaustRetries();
+
+  /**
+   * @brief Compute delay and start the retry timer for the next attempt.
+   */
+  void scheduleNextRetry();
+
+  /**
    * @brief Attempt to reconnect the monitored device.
    */
   void attemptReconnect();

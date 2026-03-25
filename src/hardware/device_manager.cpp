@@ -29,7 +29,6 @@ bool DeviceManager::registerDevice(DeviceInterface* device) {
 
   auto type = device->deviceType();
 
-  // If a device of the same type already exists, remove it first.
   if (devices_.contains(type)) {
     auto* old_device = devices_.take(type);
     disconnectDeviceSignals(old_device);
@@ -55,8 +54,9 @@ bool DeviceManager::removeDevice(DeviceInterface::DeviceType type) {
   auto* device = devices_.take(type);
   disconnectDeviceSignals(device);
 
-  if (device->isConnected() ||
-      device->state() == DeviceInterface::DeviceState::kConnecting) {
+  auto dev_state = device->state();
+  if (dev_state == DeviceInterface::DeviceState::kConnected ||
+      dev_state == DeviceInterface::DeviceState::kConnecting) {
     device->disconnectDevice();
   }
 
@@ -90,24 +90,36 @@ int DeviceManager::deviceCount() const {
 }
 
 void DeviceManager::connectAll() {
-  QMutexLocker locker(&mutex_);
-  for (auto* dev : devices_) {
-    auto state = dev->state();
-    if (state != DeviceInterface::DeviceState::kConnected &&
-        state != DeviceInterface::DeviceState::kConnecting) {
-      dev->connectDevice();
+  std::vector<DeviceInterface*> to_connect;
+  {
+    QMutexLocker locker(&mutex_);
+    for (auto* dev : devices_) {
+      auto s = dev->state();
+      if (s != DeviceInterface::DeviceState::kConnected &&
+          s != DeviceInterface::DeviceState::kConnecting) {
+        to_connect.push_back(dev);
+      }
     }
+  }
+  for (auto* dev : to_connect) {
+    dev->connectDevice();
   }
 }
 
 void DeviceManager::disconnectAll() {
-  QMutexLocker locker(&mutex_);
-  for (auto* dev : devices_) {
-    auto state = dev->state();
-    if (state == DeviceInterface::DeviceState::kConnected ||
-        state == DeviceInterface::DeviceState::kConnecting) {
-      dev->disconnectDevice();
+  std::vector<DeviceInterface*> to_disconnect;
+  {
+    QMutexLocker locker(&mutex_);
+    for (auto* dev : devices_) {
+      auto s = dev->state();
+      if (s == DeviceInterface::DeviceState::kConnected ||
+          s == DeviceInterface::DeviceState::kConnecting) {
+        to_disconnect.push_back(dev);
+      }
     }
+  }
+  for (auto* dev : to_disconnect) {
+    dev->disconnectDevice();
   }
 }
 

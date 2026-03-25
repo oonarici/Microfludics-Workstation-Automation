@@ -18,6 +18,16 @@ using mwa::hardware::RetryPolicy;
 class TestErrorHandler : public QObject {
   Q_OBJECT
 
+ private:
+  void connectAndWait(MockLedController* dev) {
+    dev->connectDevice();
+    QSignalSpy spy(dev, &DeviceInterface::stateChanged);
+    QVERIFY(spy.wait(2000));
+    if (dev->state() != DeviceInterface::DeviceState::kConnected) {
+      QVERIFY(spy.wait(2000));
+    }
+  }
+
  private slots:
   void testDefaultRetryPolicy() {
     ErrorHandler handler;
@@ -126,7 +136,7 @@ class TestErrorHandler : public QObject {
 
   void testMaxDelayIsCapped() {
     ErrorHandler handler;
-    RetryPolicy policy{3, 5000, 10.0, 8000};
+    RetryPolicy policy{3, 50, 10.0, 80};
     handler.setRetryPolicy(policy);
 
     QSignalSpy retry_spy(&handler, &ErrorHandler::retrying);
@@ -135,12 +145,12 @@ class TestErrorHandler : public QObject {
     handler.execute([]() { return false; });
 
     QVERIFY(QTest::qWaitFor(
-        [&fail_spy]() { return fail_spy.count() == 1; }, 30000));
+        [&fail_spy]() { return fail_spy.count() == 1; }, 2000));
 
-    // Second retry delay would be 50000 without cap.
+    // Second retry delay would be 500 without cap (50 * 10.0).
     QVERIFY(retry_spy.count() >= 1);
     for (int i = 0; i < retry_spy.count(); ++i) {
-      QVERIFY(retry_spy.at(i).at(1).toInt() <= 8000);
+      QVERIFY(retry_spy.at(i).at(1).toInt() <= 80);
     }
   }
 
@@ -208,17 +218,7 @@ class TestErrorHandler : public QObject {
     handler.monitorDevice(led);
     QVERIFY(handler.isMonitoring());
 
-    // Simulate: connect, then disconnect unexpectedly.
-    led->connectDevice();
-    QSignalSpy conn_spy(led, &DeviceInterface::stateChanged);
-    QVERIFY(conn_spy.wait(2000));
-
-    // Wait for kConnected.
-    if (led->state() != DeviceInterface::DeviceState::kConnected) {
-      QVERIFY(conn_spy.wait(2000));
-    }
-
-    // Now disconnect.
+    connectAndWait(led);
     led->disconnectDevice();
 
     QCOMPARE(recon_spy.count(), 1);
@@ -257,14 +257,7 @@ class TestErrorHandler : public QObject {
 
     handler.monitorDevice(led);
 
-    // Connect, then disconnect to trigger auto-reconnect.
-    led->connectDevice();
-    QSignalSpy conn_spy(led, &DeviceInterface::stateChanged);
-    QVERIFY(conn_spy.wait(2000));
-    if (led->state() != DeviceInterface::DeviceState::kConnected) {
-      QVERIFY(conn_spy.wait(2000));
-    }
-
+    connectAndWait(led);
     led->disconnectDevice();
 
     // Wait for reconnect to succeed (mock will auto-connect).

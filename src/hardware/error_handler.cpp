@@ -143,28 +143,12 @@ void ErrorHandler::performRetry() {
     return;
   }
 
-  // Failure path.
   if (current_attempt_ >= policy_.max_attempts) {
-    mwa::core::Logger::instance().logError(
-        QStringLiteral("All %1 retry attempts exhausted")
-            .arg(policy_.max_attempts),
-        kLogSource);
-    retrying_ = false;
-    int attempts = current_attempt_;
-    current_attempt_ = 0;
-    operation_ = nullptr;
-    emit allRetriesFailed(attempts);
+    exhaustRetries();
     return;
   }
 
-  int delay = computeDelay(current_attempt_);
-  mwa::core::Logger::instance().logWarning(
-      QStringLiteral("Attempt %1 failed, retrying in %2 ms")
-          .arg(current_attempt_)
-          .arg(delay),
-      kLogSource);
-  emit retrying(current_attempt_, delay);
-  retry_timer_.start(delay);
+  scheduleNextRetry();
 }
 
 void ErrorHandler::handleTimeout() {
@@ -180,19 +164,12 @@ void ErrorHandler::handleTimeout() {
 
   emit attemptTimedOut(current_attempt_, timeout_ms_);
 
-  // Treat timeout as a failure — schedule next retry if attempts remain.
   if (current_attempt_ >= policy_.max_attempts) {
-    retrying_ = false;
-    int attempts = current_attempt_;
-    current_attempt_ = 0;
-    operation_ = nullptr;
-    emit allRetriesFailed(attempts);
+    exhaustRetries();
     return;
   }
 
-  int delay = computeDelay(current_attempt_);
-  emit retrying(current_attempt_, delay);
-  retry_timer_.start(delay);
+  scheduleNextRetry();
 }
 
 void ErrorHandler::onDeviceStateChanged(
@@ -202,7 +179,6 @@ void ErrorHandler::onDeviceStateChanged(
   }
 
   if (reconnecting_) {
-    // We are waiting for a reconnect attempt to complete.
     if (new_state == DeviceInterface::DeviceState::kConnected) {
       reconnecting_ = false;
       mwa::core::Logger::instance().logInfo(
@@ -210,6 +186,15 @@ void ErrorHandler::onDeviceStateChanged(
               .arg(monitored_device_->deviceName()),
           kLogSource);
       emit reconnectSucceeded(monitored_device_->deviceName());
+    } else if (new_state ==
+                   DeviceInterface::DeviceState::kDisconnected ||
+               new_state == DeviceInterface::DeviceState::kError) {
+      reconnecting_ = false;
+      mwa::core::Logger::instance().logError(
+          QStringLiteral("Auto-reconnect failed for %1")
+              .arg(monitored_device_->deviceName()),
+          kLogSource);
+      emit reconnectFailed(monitored_device_->deviceName());
     }
     return;
   }
@@ -234,27 +219,36 @@ int ErrorHandler::computeDelay(int attempt) const {
   return std::min(static_cast<int>(delay), policy_.max_delay_ms);
 }
 
+void ErrorHandler::exhaustRetries() {
+  mwa::core::Logger::instance().logError(
+      QStringLiteral("All %1 retry attempts exhausted")
+          .arg(policy_.max_attempts),
+      kLogSource);
+  retrying_ = false;
+  int attempts = current_attempt_;
+  current_attempt_ = 0;
+  operation_ = nullptr;
+  emit allRetriesFailed(attempts);
+}
+
+void ErrorHandler::scheduleNextRetry() {
+  int delay = computeDelay(current_attempt_);
+  mwa::core::Logger::instance().logWarning(
+      QStringLiteral("Attempt %1 failed, retrying in %2 ms")
+          .arg(current_attempt_)
+          .arg(delay),
+      kLogSource);
+  emit retrying(current_attempt_, delay);
+  retry_timer_.start(delay);
+}
+
 void ErrorHandler::attemptReconnect() {
   if (monitored_device_ == nullptr) {
     return;
   }
 
   reconnecting_ = true;
-
-  auto* device = monitored_device_;
-  execute(
-      [device]() {
-        device->connectDevice();
-        // connectDevice is async — return true to indicate the attempt
-        // was launched. The actual success is observed via stateChanged.
-        return true;
-      },
-      0);
-
-  // Override: we use a single-attempt execute here. Real success is
-  // determined by the stateChanged signal, not the execute() return.
-  // If the device doesn't reach kConnected, the monitoring will detect
-  // subsequent disconnection/error and retry again.
+  monitored_device_->connectDevice();
 }
 
 }  // namespace mwa::hardware

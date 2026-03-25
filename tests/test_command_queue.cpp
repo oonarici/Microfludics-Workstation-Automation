@@ -6,7 +6,6 @@
  */
 
 #include <QAtomicInt>
-#include <QElapsedTimer>
 #include <QMutex>
 #include <QObject>
 #include <QSignalSpy>
@@ -28,14 +27,12 @@ class TestCommandQueue : public QObject {
   Q_OBJECT
 
  private slots:
-  void test_construction_startsWorkerThread();
   void test_enqueue_executesCommand();
   void test_enqueue_executesOnWorkerThread();
   void test_enqueue_fifoOrdering();
   void test_enqueue_nullCommand_returnsFalse();
   void test_enqueue_afterShutdown_returnsFalse();
-  void test_commandStarted_signal_emitted();
-  void test_commandFinished_signal_emitted();
+  void test_commandStartedAndFinished_signals_emitted();
   void test_commandFailed_onStdException();
   void test_commandFailed_onUnknownException();
   void test_commandTimedOut_signalEmitted();
@@ -44,29 +41,11 @@ class TestCommandQueue : public QObject {
   void test_shutdown_basic();
   void test_shutdown_idempotent();
   void test_shutdown_waitsForRunningCommand();
-  void test_isShutdown_falseBeforeShutdown();
-  void test_isShutdown_trueAfterShutdown();
   void test_pendingCount_reflectsQueueSize();
   void test_parentOwnership();
   void test_multipleCommands_allExecute();
   void test_concurrentEnqueue_fromMultipleThreads();
 };
-
-// ---------------------------------------------------------------------------
-void TestCommandQueue::test_construction_startsWorkerThread() {
-  CommandQueue queue;
-  // Enqueue a command that records the thread it runs on.
-  QThread* command_thread = nullptr;
-  QSignalSpy finished_spy(&queue, &CommandQueue::commandFinished);
-  queue.enqueue([&command_thread]() {
-    command_thread = QThread::currentThread();
-  });
-  QVERIFY(finished_spy.wait(2000));
-  QVERIFY2(command_thread != nullptr,
-           "Command must have executed");
-  QVERIFY2(command_thread != QThread::currentThread(),
-           "Worker thread must differ from test thread");
-}
 
 // ---------------------------------------------------------------------------
 void TestCommandQueue::test_enqueue_executesCommand() {
@@ -148,21 +127,13 @@ void TestCommandQueue::test_enqueue_afterShutdown_returnsFalse() {
 }
 
 // ---------------------------------------------------------------------------
-void TestCommandQueue::test_commandStarted_signal_emitted() {
+void TestCommandQueue::test_commandStartedAndFinished_signals_emitted() {
   CommandQueue queue;
   QSignalSpy started_spy(&queue, &CommandQueue::commandStarted);
   QSignalSpy finished_spy(&queue, &CommandQueue::commandFinished);
   queue.enqueue([]() {});
   QVERIFY(finished_spy.wait(2000));
   QCOMPARE(started_spy.count(), 1);
-}
-
-// ---------------------------------------------------------------------------
-void TestCommandQueue::test_commandFinished_signal_emitted() {
-  CommandQueue queue;
-  QSignalSpy finished_spy(&queue, &CommandQueue::commandFinished);
-  queue.enqueue([]() {});
-  QVERIFY(finished_spy.wait(2000));
   QCOMPARE(finished_spy.count(), 1);
 }
 
@@ -271,8 +242,9 @@ void TestCommandQueue::test_clear_removesPendingCommands() {
 // ---------------------------------------------------------------------------
 void TestCommandQueue::test_shutdown_basic() {
   CommandQueue queue;
+  QVERIFY2(!queue.isShutdown(), "isShutdown must be false initially");
   queue.shutdown();
-  QVERIFY(queue.isShutdown());
+  QVERIFY2(queue.isShutdown(), "isShutdown must be true after shutdown");
 }
 
 // ---------------------------------------------------------------------------
@@ -301,19 +273,6 @@ void TestCommandQueue::test_shutdown_waitsForRunningCommand() {
   // Shutdown should block until the command finishes.
   queue.shutdown();
   QCOMPARE(completed.loadRelaxed(), 1);
-}
-
-// ---------------------------------------------------------------------------
-void TestCommandQueue::test_isShutdown_falseBeforeShutdown() {
-  CommandQueue queue;
-  QVERIFY2(!queue.isShutdown(), "isShutdown must be false initially");
-}
-
-// ---------------------------------------------------------------------------
-void TestCommandQueue::test_isShutdown_trueAfterShutdown() {
-  CommandQueue queue;
-  queue.shutdown();
-  QVERIFY2(queue.isShutdown(), "isShutdown must be true after shutdown");
 }
 
 // ---------------------------------------------------------------------------
@@ -396,8 +355,6 @@ void TestCommandQueue::test_concurrentEnqueue_fromMultipleThreads() {
     delete thread;
   }
 
-  // Wait for all commands to execute.
-  QSignalSpy finished_spy(&queue, &CommandQueue::commandFinished);
   QTRY_VERIFY_WITH_TIMEOUT(
       counter.loadRelaxed() == kThreads * kPerThread, 15000);
   QCOMPARE(counter.loadRelaxed(), kThreads * kPerThread);

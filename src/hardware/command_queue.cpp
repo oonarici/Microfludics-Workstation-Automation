@@ -16,10 +16,6 @@
 
 namespace mwa::hardware {
 
-// ---------------------------------------------------------------------------
-// CommandQueueWorker — internal QObject that lives on the worker thread.
-// ---------------------------------------------------------------------------
-
 /**
  * @class CommandQueueWorker
  * @brief Internal worker object that processes commands on a dedicated thread.
@@ -68,7 +64,8 @@ class CommandQueueWorker : public QObject {
         queue_->processing_ = false;
         return;
       }
-      entry = queue_->queue_.dequeue();
+      entry = std::move(queue_->queue_.head());
+      queue_->queue_.dequeue();
     }
 
     emit queue_->commandStarted();
@@ -88,12 +85,10 @@ class CommandQueueWorker : public QObject {
       emit queue_->commandFailed(QStringLiteral("Unknown error"));
     }
 
-    // Stop the timeout timer.
     if (entry.timeout_ms > 0) {
       emit requestTimerStop();
     }
 
-    // Schedule next command if available.
     {
       QMutexLocker locker(&queue_->mutex_);
       if (!queue_->shutdown_ && !queue_->queue_.isEmpty()) {
@@ -109,16 +104,11 @@ class CommandQueueWorker : public QObject {
   CommandQueue* queue_;  ///< Back-pointer to the owning CommandQueue.
 };
 
-// ---------------------------------------------------------------------------
-// CommandQueue
-// ---------------------------------------------------------------------------
-
 CommandQueue::CommandQueue(QObject* parent)
     : QObject(parent),
       worker_(new CommandQueueWorker(this)),
       shutdown_(false),
-      processing_(false),
-      current_timeout_ms_(0) {
+      processing_(false) {
   worker_thread_.setObjectName(QStringLiteral("CommandQueueWorker"));
   worker_->moveToThread(&worker_thread_);
 
@@ -126,7 +116,7 @@ CommandQueue::CommandQueue(QObject* parent)
   // even while the worker thread is blocked by a long-running command.
   timeout_timer_.setSingleShot(true);
   QObject::connect(&timeout_timer_, &QTimer::timeout, this, [this]() {
-    emit commandTimedOut(current_timeout_ms_);
+    emit commandTimedOut(timeout_timer_.interval());
   });
 
   // Cross-thread connections: worker signals → CommandQueue slots.
@@ -191,7 +181,11 @@ int CommandQueue::pendingCount() const {
 }
 
 void CommandQueue::startTimeout(int timeout_ms) {
-  current_timeout_ms_ = timeout_ms;
+  // Guard against late delivery after shutdown — a queued
+  // requestTimerStart may arrive after the worker thread exits.
+  if (shutdown_) {
+    return;
+  }
   timeout_timer_.start(timeout_ms);
 }
 
@@ -210,6 +204,5 @@ void CommandQueue::scheduleProcessing() {
 
 }  // namespace mwa::hardware
 
-// Include the moc file for the worker class defined in this .cpp file.
-// AUTOMOC generates <filename>.moc for Q_OBJECT classes in .cpp files.
+// Required for Q_OBJECT class defined in this .cpp file.
 #include "command_queue.moc"

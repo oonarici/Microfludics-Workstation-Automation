@@ -181,7 +181,6 @@ class CommandQueue : public QObject {
   bool shutdown_;                     ///< True after shutdown() is called.
   bool processing_;                   ///< True while worker is executing.
   QTimer timeout_timer_;              ///< Timer for per-command timeouts.
-  int current_timeout_ms_;            ///< Timeout value of current command.
 
   friend class CommandQueueWorker;
 

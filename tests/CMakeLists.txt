@@ -291,3 +291,16 @@ target_link_libraries(test_stage_panel PRIVATE
 )
 
 add_test(NAME test_stage_panel COMMAND test_stage_panel)
+
+# ---------------------------------------------------------------------------
+# CommandQueue tests
+# ---------------------------------------------------------------------------
+add_executable(test_command_queue test_command_queue.cpp)
+
+target_link_libraries(test_command_queue PRIVATE
+  MwaHardware
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_command_queue COMMAND test_command_queue)

@@ -304,3 +304,31 @@ target_link_libraries(test_command_queue PRIVATE
 )
 
 add_test(NAME test_command_queue COMMAND test_command_queue)
+
+# ---------------------------------------------------------------------------
+# DeviceManager tests
+# ---------------------------------------------------------------------------
+add_executable(test_device_manager test_device_manager.cpp)
+
+target_link_libraries(test_device_manager PRIVATE
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_device_manager COMMAND test_device_manager)
+
+# ---------------------------------------------------------------------------
+# ErrorHandler tests
+# ---------------------------------------------------------------------------
+add_executable(test_error_handler test_error_handler.cpp)
+
+target_link_libraries(test_error_handler PRIVATE
+  MwaHardware
+  MwaCore
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_error_handler COMMAND test_error_handler)

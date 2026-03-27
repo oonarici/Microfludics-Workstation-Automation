@@ -219,6 +219,41 @@ class StageController : public StageControllerInterface {
 
  private:
   /**
+   * @brief RAII guard that sets is_moving_ to true on construction
+   *        and false on destruction, both under mutex_.
+   *
+   * Used by home(), moveAbsolute(), and moveRelative() to guarantee
+   * is_moving_ is always reset even when the command fails.
+   */
+  class MovingGuard {
+   public:
+    /**
+     * @brief Construct a MovingGuard, setting is_moving_ = true.
+     *
+     * @param owner The StageController whose is_moving_ flag to manage.
+     */
+    explicit MovingGuard(StageController& owner) : owner_(owner) {
+      QMutexLocker lock(&owner_.mutex_);
+      owner_.is_moving_ = true;
+    }
+
+    /**
+     * @brief Destroy the MovingGuard, resetting is_moving_ = false.
+     */
+    ~MovingGuard() {
+      QMutexLocker lock(&owner_.mutex_);
+      owner_.is_moving_ = false;
+    }
+
+    // Non-copyable, non-movable.
+    MovingGuard(const MovingGuard&) = delete;
+    MovingGuard& operator=(const MovingGuard&) = delete;
+
+   private:
+    StageController& owner_;
+  };
+
+  /**
    * @brief Parse a position response of the form "x y z".
    *
    * @param response The trimmed response string.
@@ -250,12 +285,17 @@ class StageController : public StageControllerInterface {
   /// Created lazily on the worker thread; destroyed after shutdown().
   std::unique_ptr<QSerialPort> port_;
 
+  /// Default position for each axis on construction and disconnect.
+  static constexpr double kDefaultPosition = 0.0;
+  /// Default travel speed on construction and disconnect (mm/s).
+  static constexpr double kDefaultSpeed = 1.0;
+
   mutable QMutex mutex_;                        ///< Guards cached state.
   DeviceState state_{DeviceState::kDisconnected};  ///< Cached state.
-  double position_x_{0.0};                      ///< Cached X position.
-  double position_y_{0.0};                      ///< Cached Y position.
-  double position_z_{0.0};                      ///< Cached Z position.
-  double speed_{1.0};                           ///< Cached speed mm/s.
+  double position_x_{kDefaultPosition};         ///< Cached X position.
+  double position_y_{kDefaultPosition};         ///< Cached Y position.
+  double position_z_{kDefaultPosition};         ///< Cached Z position.
+  double speed_{kDefaultSpeed};                 ///< Cached speed mm/s.
   bool is_moving_{false};                       ///< Cached motion flag.
   QString port_name_;                           ///< Serial port name.
   qint32 baud_rate_{115200};                    ///< Serial baud rate.

@@ -332,3 +332,44 @@ target_link_libraries(test_error_handler PRIVATE
 )
 
 add_test(NAME test_error_handler COMMAND test_error_handler)
+
+# ---------------------------------------------------------------------------
+# SerialUtils tests (require Qt6::SerialPort)
+# ---------------------------------------------------------------------------
+if(TARGET Qt6::SerialPort)
+  add_executable(test_serial_utils test_serial_utils.cpp)
+
+  target_link_libraries(test_serial_utils PRIVATE
+    MwaHardware
+    Qt6::Core
+    Qt6::Test
+  )
+
+  add_test(NAME test_serial_utils COMMAND test_serial_utils)
+
+  # -------------------------------------------------------------------------
+  # LedController tests (real driver, no hardware needed for state tests)
+  # -------------------------------------------------------------------------
+  add_executable(test_led_controller test_led_controller.cpp)
+
+  target_link_libraries(test_led_controller PRIVATE
+    MwaHardware
+    Qt6::Core
+    Qt6::Test
+  )
+
+  add_test(NAME test_led_controller COMMAND test_led_controller)
+
+  # -------------------------------------------------------------------------
+  # StageController tests (real driver, no hardware needed for state tests)
+  # -------------------------------------------------------------------------
+  add_executable(test_stage_controller test_stage_controller.cpp)
+
+  target_link_libraries(test_stage_controller PRIVATE
+    MwaHardware
+    Qt6::Core
+    Qt6::Test
+  )
+
+  add_test(NAME test_stage_controller COMMAND test_stage_controller)
+endif()

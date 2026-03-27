@@ -42,3 +42,17 @@ add_library(MwaHardware STATIC
 target_include_directories(MwaHardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 target_link_libraries(MwaHardware PUBLIC Qt6::Core Qt6::Gui MwaCore)
+
+# Real hardware drivers — require Qt6::SerialPort
+if(TARGET Qt6::SerialPort)
+  target_sources(MwaHardware PRIVATE
+    serial_utils.h
+    serial_utils.cpp
+    led/led_controller.h
+    led/led_controller.cpp
+    stage/stage_controller.h
+    stage/stage_controller.cpp
+  )
+  target_link_libraries(MwaHardware PUBLIC Qt6::SerialPort)
+  target_compile_definitions(MwaHardware PUBLIC MWA_HAS_SERIAL_PORT)
+endif()

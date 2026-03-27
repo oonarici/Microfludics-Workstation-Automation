@@ -12,6 +12,7 @@ set(CMAKE_AUTOUIC ON)
 
 # Find Qt6
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
+find_package(Qt6 OPTIONAL_COMPONENTS SerialPort)
 
 # Testing
 include(CTest)

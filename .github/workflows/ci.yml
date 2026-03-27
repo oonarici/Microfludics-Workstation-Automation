@@ -33,6 +33,7 @@ jobs:
           version: "6.8.3"
           cache: true
           arch: ${{ matrix.qt_arch }}
+          modules: qtserialport
 
       - name: Install Ninja (macOS)
         if: runner.os == 'macOS'

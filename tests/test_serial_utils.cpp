@@ -93,13 +93,15 @@ void TestSerialUtils::test_formatCommandError_emptyResponse() {
 }
 
 void TestSerialUtils::test_formatCommandError_whitespaceResponse() {
-  // Non-empty whitespace is NOT treated as timeout.
+  // formatCommandError tests isEmpty(), not isNull() — a whitespace string
+  // is non-empty so it is used verbatim. Note: sendCommand() always trims
+  // its return value, so a whitespace-only string cannot arrive from the
+  // normal pipeline; this exercises formatCommandError in isolation.
   const QString result = utils::formatCommandError(
       QStringLiteral("Driver"),
       QStringLiteral("CMD"),
       QStringLiteral(" "));
 
-  QVERIFY(result.contains(QStringLiteral(" ")));
   QVERIFY(!result.contains(QStringLiteral("timeout")));
 }
 

@@ -105,25 +105,23 @@ void StageController::disconnectDevice() {
     if (state_ == DeviceState::kDisconnected) {
       return;
     }
+    // Transition state immediately so command guards reject new requests
+    // before the worker thread closes the port.
+    state_ = DeviceState::kDisconnected;
+    position_x_ = 0.0;
+    position_y_ = 0.0;
+    position_z_ = 0.0;
+    speed_ = 1.0;
+    is_moving_ = false;
   }
+  emit stateChanged(DeviceState::kDisconnected);
 
   command_queue_->enqueue([this]() {
     if (port_ && port_->isOpen()) {
       port_->close();
     }
-
     mwa::core::Logger::instance().logInfo(
         QStringLiteral("StageController: disconnected"));
-
-    {
-      QMutexLocker lock(&mutex_);
-      position_x_ = 0.0;
-      position_y_ = 0.0;
-      position_z_ = 0.0;
-      speed_ = 1.0;
-      is_moving_ = false;
-    }
-    setState(DeviceState::kDisconnected);
   });
 }
 

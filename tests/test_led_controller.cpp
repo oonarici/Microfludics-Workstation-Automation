@@ -41,6 +41,8 @@ class TestLedController : public QObject {
 
   // -- C. Connected-state guards --------------------------------------------
   void test_setIntensity_noOpWhenDisconnected();
+  void test_setIntensity_belowRange_noOpWhenDisconnected();
+  void test_setIntensity_aboveRange_noOpWhenDisconnected();
   void test_setPowerOn_noOpWhenDisconnected();
   void test_disconnectDevice_noOpWhenAlreadyDisconnected();
 };
@@ -106,6 +108,32 @@ void TestLedController::test_setIntensity_noOpWhenDisconnected() {
   QTest::qWait(100);
 
   // No signal emitted — command was not enqueued.
+  QCOMPARE(spy.count(), 0);
+  QCOMPARE(ctrl.intensity(), 0.0);
+}
+
+void TestLedController::test_setIntensity_belowRange_noOpWhenDisconnected() {
+  LedController ctrl;
+  QSignalSpy spy(&ctrl, &LedController::intensityChanged);
+
+  // Below-range value — device is disconnected, so the guard rejects
+  // before clamping is ever reached.
+  ctrl.setIntensity(-10.0);
+  QTest::qWait(100);
+
+  QCOMPARE(spy.count(), 0);
+  QCOMPARE(ctrl.intensity(), 0.0);
+}
+
+void TestLedController::test_setIntensity_aboveRange_noOpWhenDisconnected() {
+  LedController ctrl;
+  QSignalSpy spy(&ctrl, &LedController::intensityChanged);
+
+  // Above-range value — device is disconnected, so the guard rejects
+  // before clamping is ever reached.
+  ctrl.setIntensity(150.0);
+  QTest::qWait(100);
+
   QCOMPARE(spy.count(), 0);
   QCOMPARE(ctrl.intensity(), 0.0);
 }

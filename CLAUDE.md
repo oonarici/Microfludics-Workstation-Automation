@@ -18,11 +18,11 @@ This project uses four agents + the human Owner with strict role separation:
 
 All development follows `.claude/workflows/development_workflow.md`. Key rules:
 
-1. Every task follows the full workflow sequence — no skipping steps.
-2. **Owner (human) is the only review gate** — no intermediate Lead reviews.
+1. **Lead assigns, describes, and immediately starts tasks** — the full chain Lead → SWE → TE → PR runs without pausing for "go on" at each step.
+2. **Owner (human) is the only review gate** — reviews the final PR and merges if everything is okay. No intermediate approvals except UX design sign-off for GUI features.
 3. No cross-role work (SWE doesn't test, TE doesn't code, UX doesn't code).
-4. GUI features require UX design approval BEFORE SWE implementation.
-5. Testing happens before PR — TE creates PR after all tests pass, Owner reviews once.
+4. GUI features require UX design approval BEFORE SWE implementation (only intermediate pause — before coding starts).
+5. **TE writes unit tests, runs them, and opens the PR** — testing and PR creation are one continuous step after SWE finishes.
 6. Zero compiler warnings on both macOS and Windows.
 7. **Doxygen documentation is mandatory** — all public APIs must have complete Doxygen comments (C++ standard). Code without Doxygen is rejected.
 8. **Every PR includes a Handoff Summary** telling the Owner exactly what to test and what to focus on.

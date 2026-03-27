@@ -25,6 +25,13 @@ QString sendCommand(QSerialPort* port, const QString& cmd,
   const QByteArray data = (cmd + QStringLiteral("\r\n")).toUtf8();
   port->write(data);
 
+  // response_wait_ms is a per-operation timeout (write + each read cycle),
+  // not a total budget. Assumes the device sends its full response in one
+  // chunk (one waitForReadyRead iteration), which holds for all supported
+  // ASCII protocols that reply with a single \r\n-terminated line.
+  // TODO: Add a total-elapsed-time cap around the while-loop below so that
+  //       a non-compliant device trickling data cannot block indefinitely.
+  //       Needed when non-ASCII or multi-line protocols are introduced.
   if (!port->waitForBytesWritten(response_wait_ms)) {
     return {};
   }

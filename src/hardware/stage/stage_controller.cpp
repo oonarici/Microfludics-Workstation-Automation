@@ -105,25 +105,23 @@ void StageController::disconnectDevice() {
     if (state_ == DeviceState::kDisconnected) {
       return;
     }
+    // Transition state immediately so command guards reject new requests
+    // before the worker thread closes the port.
+    state_ = DeviceState::kDisconnected;
+    position_x_ = kDefaultPosition;
+    position_y_ = kDefaultPosition;
+    position_z_ = kDefaultPosition;
+    speed_ = kDefaultSpeed;
+    is_moving_ = false;
   }
+  emit stateChanged(DeviceState::kDisconnected);
 
   command_queue_->enqueue([this]() {
     if (port_ && port_->isOpen()) {
       port_->close();
     }
-
     mwa::core::Logger::instance().logInfo(
         QStringLiteral("StageController: disconnected"));
-
-    {
-      QMutexLocker lock(&mutex_);
-      position_x_ = 0.0;
-      position_y_ = 0.0;
-      position_z_ = 0.0;
-      speed_ = 1.0;
-      is_moving_ = false;
-    }
-    setState(DeviceState::kDisconnected);
   });
 }
 
@@ -155,10 +153,7 @@ void StageController::home() {
 
   command_queue_->enqueue(
       [this]() {
-        {
-          QMutexLocker lock(&mutex_);
-          is_moving_ = true;
-        }
+        MovingGuard guard(*this);
 
         const QString resp = serial_utils::sendCommand(
             port_.get(), QStringLiteral("HOME"), kResponseWaitMs);
@@ -166,18 +161,13 @@ void StageController::home() {
         if (serial_utils::isOkResponse(resp)) {
           {
             QMutexLocker lock(&mutex_);
-            position_x_ = 0.0;
-            position_y_ = 0.0;
-            position_z_ = 0.0;
-            is_moving_ = false;
+            position_x_ = kDefaultPosition;
+            position_y_ = kDefaultPosition;
+            position_z_ = kDefaultPosition;
           }
           emit positionChanged(0.0, 0.0, 0.0);
           emit homeComplete();
         } else {
-          {
-            QMutexLocker lock(&mutex_);
-            is_moving_ = false;
-          }
           const QString err = serial_utils::formatCommandError(
               QStringLiteral("StageController"),
               QStringLiteral("HOME"), resp);
@@ -198,10 +188,7 @@ void StageController::moveAbsolute(double x, double y, double z) {
 
   command_queue_->enqueue(
       [this, x, y, z]() {
-        {
-          QMutexLocker lock(&mutex_);
-          is_moving_ = true;
-        }
+        MovingGuard guard(*this);
 
         const QString cmd =
             QStringLiteral("MOVE %1 %2 %3")
@@ -218,15 +205,10 @@ void StageController::moveAbsolute(double x, double y, double z) {
             position_x_ = x;
             position_y_ = y;
             position_z_ = z;
-            is_moving_ = false;
           }
           emit positionChanged(x, y, z);
           emit moveComplete();
         } else {
-          {
-            QMutexLocker lock(&mutex_);
-            is_moving_ = false;
-          }
           const QString err = serial_utils::formatCommandError(
               QStringLiteral("StageController"),
               QStringLiteral("MOVE"), resp);
@@ -247,10 +229,7 @@ void StageController::moveRelative(double dx, double dy, double dz) {
 
   command_queue_->enqueue(
       [this, dx, dy, dz]() {
-        {
-          QMutexLocker lock(&mutex_);
-          is_moving_ = true;
-        }
+        MovingGuard guard(*this);
 
         const QString cmd =
             QStringLiteral("RMOVE %1 %2 %3")
@@ -273,15 +252,10 @@ void StageController::moveRelative(double dx, double dy, double dz) {
             new_x = position_x_;
             new_y = position_y_;
             new_z = position_z_;
-            is_moving_ = false;
           }
           emit positionChanged(new_x, new_y, new_z);
           emit moveComplete();
         } else {
-          {
-            QMutexLocker lock(&mutex_);
-            is_moving_ = false;
-          }
           const QString err = serial_utils::formatCommandError(
               QStringLiteral("StageController"),
               QStringLiteral("RMOVE"), resp);

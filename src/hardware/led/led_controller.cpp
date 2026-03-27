@@ -102,22 +102,20 @@ void LedController::disconnectDevice() {
     if (state_ == DeviceState::kDisconnected) {
       return;
     }
+    // Transition state immediately so command guards reject new requests
+    // before the worker thread closes the port.
+    state_ = DeviceState::kDisconnected;
+    power_on_ = false;
+    intensity_ = 0.0;
   }
+  emit stateChanged(DeviceState::kDisconnected);
 
   command_queue_->enqueue([this]() {
     if (port_ && port_->isOpen()) {
       port_->close();
     }
-
     mwa::core::Logger::instance().logInfo(
         QStringLiteral("LedController: disconnected"));
-
-    {
-      QMutexLocker lock(&mutex_);
-      power_on_ = false;
-      intensity_ = 0.0;
-    }
-    setState(DeviceState::kDisconnected);
   });
 }
 

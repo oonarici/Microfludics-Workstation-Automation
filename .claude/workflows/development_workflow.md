@@ -24,26 +24,30 @@
 ### Sequence A: Standard Feature (non-GUI)
 
 ```
-Step 1  │ Lead    │ Creates task with requirement IDs, acceptance criteria, and assigns to SWE
-Step 2  │ SWE     │ Implements the feature, verifies build on both platforms
-Step 3  │ TE      │ Creates test plan, writes tests, runs full test suite
+Step 1  │ Lead    │ Creates task with requirement IDs, acceptance criteria — then IMMEDIATELY starts Step 2 (no pause)
+Step 2  │ SWE     │ Implements the feature, verifies build on both platforms — then IMMEDIATELY starts Step 3 (no pause)
+Step 3  │ TE      │ Writes unit tests, runs full test suite
 Step 4a │ TE      │ DEFECTS FOUND → SWE fixes (Step 2), TE retests (Step 3)
 Step 4b │ TE      │ ALL CLEAR → Pushes branch, waits for CI, creates PR with Handoff Summary
 Step 5  │ Owner   │ Reviews PR (code + tests) → CONFIRM (merge) or REJECT (fix and resubmit)
 ```
 
+> **The only place the workflow pauses and waits for Owner input is Step 5 (PR review).**
+
 ### Sequence B: GUI Feature
 
 ```
-Step 1  │ Lead    │ Creates task with requirement IDs, assigns FIRST to UX
+Step 1  │ Lead    │ Creates task with requirement IDs — immediately starts UX design (no pause)
 Step 2  │ UX      │ Creates design spec (layout, widgets, states, interactions)
-Step 3  │ Owner   │ Reviews design → APPROVE or REJECT (UX revises, go to Step 2)
-Step 4  │ SWE     │ Implements EXACTLY the approved design — no deviations
-Step 5  │ TE      │ Tests all states, interactions, edge cases from design spec
+Step 3  │ Owner   │ *** PAUSE — reviews design → APPROVE (continue to Step 4) or REJECT (UX revises, back to Step 2)
+Step 4  │ SWE     │ Implements EXACTLY the approved design — immediately hands off to TE (no pause)
+Step 5  │ TE      │ Writes tests for all states, interactions, edge cases from design spec
 Step 6a │ TE      │ DEFECTS FOUND → SWE fixes (Step 4), TE retests (Step 5)
 Step 6b │ TE      │ ALL CLEAR → Pushes branch, waits for CI, creates PR with Handoff Summary
-Step 7  │ Owner   │ Reviews PR (code + tests) → CONFIRM (merge) or REJECT (fix and resubmit)
+Step 7  │ Owner   │ *** PAUSE — reviews PR (code + tests) → CONFIRM (merge) or REJECT (fix and resubmit)
 ```
+
+> **GUI workflow pauses exactly twice: design review (Step 3) and PR review (Step 7).**
 
 ### Sequence C: Bug Fix
 

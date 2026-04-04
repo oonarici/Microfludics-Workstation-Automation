@@ -63,3 +63,13 @@ if(TARGET Qt6::SerialPort)
   target_link_libraries(MwaHardware PUBLIC Qt6::SerialPort)
   target_compile_definitions(MwaHardware PUBLIC MWA_HAS_SERIAL_PORT)
 endif()
+
+# Cetoni Nemesys pump driver — requires QmixSDK (Windows/Linux only)
+if(QmixSDK_FOUND)
+  target_sources(MwaHardware PRIVATE
+    pump/pump_controller.h
+    pump/pump_controller.cpp
+  )
+  target_link_libraries(MwaHardware PRIVATE QmixSDK::QmixSDK)
+  target_compile_definitions(MwaHardware PRIVATE MWA_HAS_QMIXSDK)
+endif()

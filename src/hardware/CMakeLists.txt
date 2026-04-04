@@ -68,7 +68,6 @@ endif()
 if(QmixSDK_FOUND)
   target_sources(MwaHardware PRIVATE
     pump/pump_controller.h
-    pump/pump_controller.cpp
   )
   target_link_libraries(MwaHardware PRIVATE QmixSDK::QmixSDK)
   target_compile_definitions(MwaHardware PRIVATE MWA_HAS_QMIXSDK)

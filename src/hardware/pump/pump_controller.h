@@ -138,6 +138,7 @@ class PumpController : public PumpControllerInterface {
    * contains the bus and device description files needed by
    * `LCB_Open()`.  Must be set before connectDevice().
    *
+   * @warning Not thread-safe — call only while disconnected.
    * @param path Absolute path to the Cetoni config directory.
    */
   void setConfigPath(const QString& path);
@@ -156,6 +157,7 @@ class PumpController : public PumpControllerInterface {
    * configuration (e.g. "Nemesys_S_1", "neMESYS_Low_Pressure_1").
    * Used by `LCB_LookupPumpByName()` during connection.
    *
+   * @warning Not thread-safe — call only while disconnected.
    * @param name Pump device name from the Cetoni configuration.
    */
   void setPumpName(const QString& name);
@@ -173,6 +175,8 @@ class PumpController : public PumpControllerInterface {
    * These dimensions are passed to `LCP_SetSyringeParam()` during
    * connection.  Correct syringe parameters are essential for accurate
    * flow rate and volume calculations by the SDK.
+   *
+   * @warning Not thread-safe — call only while disconnected.
    *
    * Common syringe dimensions (Hamilton):
    * | Volume (µL) | Inner Diameter (mm) | Stroke (mm) |

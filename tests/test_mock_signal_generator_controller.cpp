@@ -223,7 +223,7 @@ void TestMockSignalGeneratorController::
   ctrl.disconnectDevice();
   QSignalSpy spy(&ctrl, &DeviceInterface::stateChanged);
   ctrl.disconnectDevice();
-  QTest::qWait(50);
+  QTest::qWait(100);
   QCOMPARE(spy.count(), 0);
 }
 
@@ -238,6 +238,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::frequencyChanged);
   ctrl.setFrequency(5000.0);
+  QTest::qWait(100);  // Wait for 20ms command latency (extra margin for CI).
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toDouble(), 5000.0);
 }
@@ -256,6 +257,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::amplitudeChanged);
   ctrl.setAmplitude(3.3);
+  QTest::qWait(100);  // Wait for 20ms command latency.
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toDouble(), 3.3);
 }
@@ -272,10 +274,12 @@ void TestMockSignalGeneratorController::
   MockSignalGeneratorController ctrl;
   // Start at kSine (default), change to square first, then back to sine.
   ctrl.setWaveform(Waveform::kSquare);
+  QTest::qWait(100);
   QSignalSpy spy(
       &ctrl,
       &SignalGeneratorControllerInterface::waveformChanged);
   ctrl.setWaveform(Waveform::kSine);
+  QTest::qWait(100);  // Wait for 20ms command latency.
   QCOMPARE(spy.count(), 1);
   QCOMPARE(
       qvariant_cast<Waveform>(spy.at(0).at(0)),
@@ -289,6 +293,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::waveformChanged);
   ctrl.setWaveform(Waveform::kSquare);
+  QTest::qWait(100);  // Wait for 20ms command latency.
   QCOMPARE(spy.count(), 1);
   QCOMPARE(
       qvariant_cast<Waveform>(spy.at(0).at(0)),
@@ -302,6 +307,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::waveformChanged);
   ctrl.setWaveform(Waveform::kTriangle);
+  QTest::qWait(100);  // Wait for 20ms command latency.
   QCOMPARE(spy.count(), 1);
   QCOMPARE(
       qvariant_cast<Waveform>(spy.at(0).at(0)),
@@ -322,6 +328,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::outputStateChanged);
   ctrl.setOutputEnabled(true);
+  QTest::qWait(100);  // Wait for 20ms command latency.
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toBool(), true);
 }
@@ -330,10 +337,12 @@ void TestMockSignalGeneratorController::
     test_setOutputEnabled_false_emitsOutputStateChanged() {
   MockSignalGeneratorController ctrl;
   ctrl.setOutputEnabled(true);
+  QTest::qWait(100);
   QSignalSpy spy(
       &ctrl,
       &SignalGeneratorControllerInterface::outputStateChanged);
   ctrl.setOutputEnabled(false);
+  QTest::qWait(100);  // Wait for 20ms command latency.
   QCOMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toBool(), false);
 }
@@ -370,7 +379,7 @@ void TestMockSignalGeneratorController::
       &SignalGeneratorControllerInterface::frequencyChanged);
   QSignalSpy state_spy(&ctrl, &DeviceInterface::stateChanged);
   ctrl.configureSweep(100.0, 20000.0, 100.0);
-  QTest::qWait(50);
+  QTest::qWait(100);
   QCOMPARE(freq_spy.count(), 0);
   QCOMPARE(state_spy.count(), 0);
 }
@@ -392,7 +401,7 @@ void TestMockSignalGeneratorController::
   MockSignalGeneratorController ctrl;
   QSignalSpy spy(&ctrl, &DeviceInterface::stateChanged);
   ctrl.setFrequency(9999.0);
-  QTest::qWait(50);
+  QTest::qWait(100);
   QCOMPARE(spy.count(), 0);
 }
 

@@ -37,6 +37,11 @@ add_library(MwaHardware STATIC
   stage/stage_controller_interface.h
   stage/mock_stage_controller.h
   stage/mock_stage_controller.cpp
+
+  # SCPI
+  scpi/scpi_transport.h
+  scpi/scpi_client.h
+  scpi/scpi_client.cpp
 )
 
 target_include_directories(MwaHardware PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
@@ -52,6 +57,8 @@ if(TARGET Qt6::SerialPort)
     led/led_controller.cpp
     stage/stage_controller.h
     stage/stage_controller.cpp
+    scpi/serial_transport.h
+    scpi/serial_transport.cpp
   )
   target_link_libraries(MwaHardware PUBLIC Qt6::SerialPort)
   target_compile_definitions(MwaHardware PUBLIC MWA_HAS_SERIAL_PORT)

@@ -218,6 +218,8 @@ void TestMockPumpController::test_doubleDisconnect_noExtraSignals() {
 
 void TestMockPumpController::test_setFlowRate_emitsFlowRateChanged() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   QSignalSpy spy(
       &ctrl,
       &mwa::hardware::PumpControllerInterface::flowRateChanged);
@@ -228,8 +230,10 @@ void TestMockPumpController::test_setFlowRate_emitsFlowRateChanged() {
 
 void TestMockPumpController::test_setFlowRate_getterReturnsSetValue() {
   MockPumpController ctrl;
-  ctrl.setFlowRate(55.5);
-  QCOMPARE(ctrl.flowRate(), 55.5);
+  ctrl.connectDevice();
+  QTest::qWait(600);
+  ctrl.setFlowRate(35.0);  // Within range for default 250 µL syringe
+  QCOMPARE(ctrl.flowRate(), 35.0);
 }
 
 void TestMockPumpController::test_setTargetVolume_getterReturnsSetValue() {
@@ -240,6 +244,8 @@ void TestMockPumpController::test_setTargetVolume_getterReturnsSetValue() {
 
 void TestMockPumpController::test_startInfusion_emitsInfusionStarted() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   QSignalSpy spy(
       &ctrl,
       &mwa::hardware::PumpControllerInterface::infusionStarted);
@@ -249,6 +255,8 @@ void TestMockPumpController::test_startInfusion_emitsInfusionStarted() {
 
 void TestMockPumpController::test_startInfusion_isInfusingTrue() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
   QVERIFY2(ctrl.isInfusing(),
            "isInfusing() must be true immediately after startInfusion()");
@@ -256,6 +264,8 @@ void TestMockPumpController::test_startInfusion_isInfusingTrue() {
 
 void TestMockPumpController::test_stopInfusion_emitsInfusionStopped() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
   QSignalSpy spy(
       &ctrl,
@@ -266,6 +276,8 @@ void TestMockPumpController::test_stopInfusion_emitsInfusionStopped() {
 
 void TestMockPumpController::test_stopInfusion_isInfusingFalse() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
   ctrl.stopInfusion();
   QVERIFY2(!ctrl.isInfusing(),
@@ -274,29 +286,56 @@ void TestMockPumpController::test_stopInfusion_isInfusingFalse() {
 
 void TestMockPumpController::test_refill_resetsPositionToZero() {
   MockPumpController ctrl;
-  // Force a non-zero position indirectly by calling refill from a
-  // non-zero position context — here we just verify the post-condition.
+  ctrl.connectDevice();
+  QTest::qWait(600);
+  // Dispense a bit first to move position away from full.
+  ctrl.startInfusion();
+  QTest::qWait(300);
+  ctrl.stopInfusion();
+  const double pos_before = ctrl.currentPosition();
+  QVERIFY2(pos_before < ctrl.syringeVolume(),
+           "Position should have decreased during infusion");
+  // Now refill — position should eventually return to syringe volume.
   ctrl.refill();
-  QCOMPARE(ctrl.currentPosition(), 0.0);
+  // Wait enough for timed refill to complete (250 µL at 50 µL/min ≈ 5 min
+  // real time, but each 100ms tick aspirates ~0.083 µL — we only need to
+  // verify that position is increasing, not wait for full refill).
+  QTest::qWait(300);
+  QVERIFY2(ctrl.currentPosition() > pos_before,
+           "Position should increase during refill");
 }
 
 void TestMockPumpController::test_refill_emitsPositionChanged() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
+  // Dispense first so position moves from full.
+  ctrl.startInfusion();
+  QTest::qWait(200);
+  ctrl.stopInfusion();
   QSignalSpy spy(
       &ctrl,
       &mwa::hardware::PumpControllerInterface::positionChanged);
   ctrl.refill();
-  QCOMPARE(spy.count(), 1);
-  QCOMPARE(spy.at(0).at(0).toDouble(), 0.0);
+  QTest::qWait(200);
+  QVERIFY2(spy.count() >= 1,
+           "refill() must emit positionChanged periodically");
 }
 
 void TestMockPumpController::test_refill_stopsInfusion() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
   QVERIFY(ctrl.isInfusing());
+  // refill() should emit errorOccurred (can't refill while infusing).
   ctrl.refill();
+  // Enhanced mock rejects refill during infusion, so infusion continues.
+  // The old test expected refill to stop infusion, but the enhanced mock
+  // correctly prevents simultaneous operations. Stop infusion first.
+  ctrl.stopInfusion();
   QVERIFY2(!ctrl.isInfusing(),
-           "refill() must stop an active infusion");
+           "Infusion must be stopped after stopInfusion()");
 }
 
 // ---------------------------------------------------------------------------
@@ -305,6 +344,8 @@ void TestMockPumpController::test_refill_stopsInfusion() {
 
 void TestMockPumpController::test_doubleStartInfusion_noExtraSignals() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
   QSignalSpy spy(
       &ctrl,
@@ -315,6 +356,8 @@ void TestMockPumpController::test_doubleStartInfusion_noExtraSignals() {
 
 void TestMockPumpController::test_doubleStopInfusion_noExtraSignals() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
   ctrl.stopInfusion();
   QSignalSpy spy(
@@ -327,15 +370,23 @@ void TestMockPumpController::test_doubleStopInfusion_noExtraSignals() {
 void TestMockPumpController::
     test_refillWhileInfusing_stopsInfusionAndResets() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   ctrl.startInfusion();
+  // Enhanced mock rejects refill while infusing (emits error).
   ctrl.refill();
+  // Infusion should still be active since refill was rejected.
+  QVERIFY2(ctrl.isInfusing(),
+           "Infusion should continue when refill is rejected");
+  ctrl.stopInfusion();
   QVERIFY2(!ctrl.isInfusing(),
-           "refill() while infusing must stop infusion");
-  QCOMPARE(ctrl.currentPosition(), 0.0);
+           "Infusion must stop after explicit stopInfusion()");
 }
 
 void TestMockPumpController::test_setFlowRate_doesNotEmitStateChanged() {
   MockPumpController ctrl;
+  ctrl.connectDevice();
+  QTest::qWait(600);
   QSignalSpy spy(&ctrl, &DeviceInterface::stateChanged);
   ctrl.setFlowRate(30.0);
   QTest::qWait(50);

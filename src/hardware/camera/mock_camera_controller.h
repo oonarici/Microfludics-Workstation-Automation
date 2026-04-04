@@ -1,12 +1,14 @@
 /**
  * @file mock_camera_controller.h
- * @brief Mock implementation of the camera controller interface.
+ * @brief Mock camera controller with synthetic microscopy frames.
  * @author MWA Team
- * @date 2026-03-22
+ * @date 2026-04-02
  *
  * Provides a simulated camera controller that implements
- * CameraControllerInterface without requiring real hardware. Suitable for
- * GUI development and unit testing.
+ * CameraControllerInterface without requiring real hardware. Generates
+ * realistic synthetic microscopy frames with darkfield background,
+ * microchannel walls, drifting particles, exposure/gain response, and
+ * per-pixel read noise. Suitable for GUI development and unit testing.
  *
  * @copyright LGPL-3.0-or-later
  */
@@ -15,6 +17,8 @@
 
 #include <QImage>
 #include <QRect>
+#include <QVector>
+#include <random>
 
 #include "hardware/camera/camera_controller_interface.h"
 
@@ -22,13 +26,23 @@ namespace mwa::hardware {
 
 /**
  * @class MockCameraController
- * @brief Simulated imaging camera controller for hardware-free development.
+ * @brief Simulated imaging camera with synthetic microscopy frames.
  *
- * Implements CameraControllerInterface with in-memory state. The connect()
- * operation uses a 500 ms QTimer delay to simulate real hardware latency.
- * Exposure defaults to 10.0 ms, gain to 1.0, and ROI to (0, 0, 640, 480).
- * grabSingle() generates a checkerboard test-pattern QImage. Continuous
- * capture uses a QTimer at approximately 30 fps.
+ * Implements CameraControllerInterface with in-memory state. The
+ * connect() operation uses a 500 ms QTimer delay to simulate real
+ * hardware latency. Each captured frame is a procedurally generated
+ * 8-bit grayscale image that mimics a darkfield microscopy view:
+ *
+ * - Dark background (~20 base pixel value)
+ * - Two horizontal bright lines simulating microchannel walls
+ * - 5-15 bright circular particles drifting leftward between walls
+ * - Exposure-dependent brightness scaling
+ * - Gain-dependent brightness and noise amplification
+ * - Gaussian read noise (sigma = 3.0 * gain_)
+ * - Frame counter overlay in the top-left corner
+ *
+ * Frame rate adapts to exposure: interval = max(33 ms, exposure_ms).
+ * Particles re-randomize every 30 frames.
  *
  * @see CameraControllerInterface
  */
@@ -39,7 +53,11 @@ class MockCameraController : public CameraControllerInterface {
   /**
    * @brief Construct a MockCameraController.
    *
-   * @param parent Optional QObject parent for Qt ownership management.
+   * Initialises the random number generator, particle set, and
+   * capture timer. Default exposure is 10.0 ms, gain is 1.0, and
+   * ROI is (0, 0, 640, 480).
+   *
+   * @param parent Optional QObject parent for Qt ownership.
    */
   explicit MockCameraController(QObject* parent = nullptr);
 
@@ -53,15 +71,17 @@ class MockCameraController : public CameraControllerInterface {
   /**
    * @brief Initiate a simulated 500 ms asynchronous connection.
    *
-   * Transitions state to DeviceState::kConnecting immediately, then after
-   * 500 ms transitions to DeviceState::kConnected and emits stateChanged().
+   * Transitions state to DeviceState::kConnecting immediately,
+   * then after 500 ms transitions to DeviceState::kConnected and
+   * emits stateChanged().
    */
   void connectDevice() override;
 
   /**
    * @brief Disconnect from the simulated device immediately.
    *
-   * Transitions state to DeviceState::kDisconnected and emits stateChanged().
+   * Stops any active capture and transitions state to
+   * DeviceState::kDisconnected.
    */
   void disconnectDevice() override;
 
@@ -82,7 +102,7 @@ class MockCameraController : public CameraControllerInterface {
   /**
    * @brief Query whether the device is fully connected.
    *
-   * @return @c true if the device state is DeviceState::kConnected.
+   * @return @c true if state is DeviceState::kConnected.
    */
   [[nodiscard]] bool isConnected() const override;
 
@@ -90,6 +110,9 @@ class MockCameraController : public CameraControllerInterface {
 
   /**
    * @brief Set the sensor exposure time and emit exposureChanged().
+   *
+   * If continuous capture is active, updates the timer interval to
+   * match the new exposure-based frame rate.
    *
    * @param ms Exposure duration in milliseconds.
    */
@@ -119,27 +142,28 @@ class MockCameraController : public CameraControllerInterface {
   /**
    * @brief Set the region of interest on the sensor.
    *
-   * @param roi Rectangle defining the active sensor area in pixels.
+   * @param roi Rectangle defining the active sensor area.
    */
   void setRoi(const QRect& roi) override;
 
   /**
    * @brief Return the current region of interest.
    *
-   * @return Rectangle defining the active sensor area in pixels.
+   * @return Rectangle defining the active sensor area.
    */
   [[nodiscard]] QRect roi() const override;
 
   /**
-   * @brief Capture a single checkerboard test-pattern frame synchronously
-   *        and emit frameReady().
+   * @brief Capture a single synthetic microscopy frame and emit
+   *        frameReady().
    */
   void grabSingle() override;
 
   /**
-   * @brief Start continuous frame capture at ~30 fps using a QTimer.
+   * @brief Start continuous capture at an exposure-limited rate.
    *
-   * Each tick generates a test-pattern frame and emits frameReady().
+   * Frame interval = max(33 ms, exposure_ms), so the maximum rate
+   * is ~30 fps for short exposures.
    */
   void startContinuousCapture() override;
 
@@ -151,7 +175,7 @@ class MockCameraController : public CameraControllerInterface {
   /**
    * @brief Start a batch capture sequence.
    *
-   * Captures @p count frames separated by @p interval_ms milliseconds and
+   * Captures @p count frames separated by @p interval_ms ms and
    * emits batchComplete() when done.
    *
    * @param count       Number of frames to capture.
@@ -160,9 +184,9 @@ class MockCameraController : public CameraControllerInterface {
   void startBatchCapture(int count, int interval_ms) override;
 
   /**
-   * @brief Query whether any capture mode is currently active.
+   * @brief Query whether any capture mode is active.
    *
-   * @return @c true if a capture is in progress, @c false otherwise.
+   * @return @c true if capturing, @c false otherwise.
    */
   [[nodiscard]] bool isCapturing() const override;
 
@@ -174,6 +198,17 @@ class MockCameraController : public CameraControllerInterface {
   [[nodiscard]] QImage lastFrame() const override;
 
  private:
+  /**
+   * @brief Describes a single bright circular particle in the
+   *        synthetic microscopy field of view.
+   */
+  struct Particle {
+    double x;       ///< Centre X coordinate in pixels.
+    double y;       ///< Centre Y coordinate in pixels.
+    double radius;  ///< Radius in pixels (3-8).
+    int brightness; ///< Peak pixel value before exposure/gain (180-255).
+  };
+
   /// Current connection state of the device.
   DeviceState state_;
   /// Current sensor exposure time in milliseconds.
@@ -188,17 +223,48 @@ class MockCameraController : public CameraControllerInterface {
   QTimer* capture_timer_;
   /// Remaining frame count for batch capture (0 = continuous).
   int batch_remaining_;
-  /// Cached checkerboard pattern, invalidated when ROI changes.
-  mutable QImage cached_pattern_;
+
+  /// Mersenne Twister random number generator.
+  std::mt19937 rng_;
+  /// Monotonically increasing frame counter.
+  int frame_counter_;
+  /// Accumulated leftward particle drift in pixels.
+  double particle_drift_x_;
+  /// Current set of particles in the field of view.
+  QVector<Particle> particles_;
+  /// Frames elapsed since last particle regeneration.
+  int frames_since_regen_;
 
   /**
-   * @brief Return a checkerboard test-pattern QImage matching the ROI size.
+   * @brief Generate a synthetic 8-bit grayscale microscopy frame.
    *
-   * Caches the pattern and only regenerates when the ROI dimensions change.
+   * Produces an image matching the current ROI dimensions with:
+   * - Dark background scaled by exposure
+   * - Two horizontal channel wall lines
+   * - Circular particles with leftward drift
+   * - Exposure and gain brightness scaling
+   * - Gaussian read noise
+   * - Frame counter text overlay
    *
-   * @return A QImage with a 32x32 pixel checkerboard pattern.
+   * @return A QImage in Format_Grayscale8.
    */
-  QImage generateTestPattern() const;
+  QImage generateMicroscopyFrame();
+
+  /**
+   * @brief Randomize the particle set for a new field of view.
+   *
+   * Generates 5-15 particles with random positions between the
+   * channel walls, random radii (3-8 px), and random brightness
+   * values (180-255).
+   */
+  void regenerateParticles();
+
+  /**
+   * @brief Compute the capture timer interval from exposure.
+   *
+   * @return max(33, static_cast<int>(exposure_)) in milliseconds.
+   */
+  [[nodiscard]] int captureIntervalMs() const;
 
   /**
    * @brief Slot called by capture_timer_ to produce each frame.

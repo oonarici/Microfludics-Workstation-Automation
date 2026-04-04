@@ -226,6 +226,7 @@ class SignalGeneratorController
    * Must be called before connectDevice().  Has no effect while the
    * device is connected.
    *
+   * @warning Not thread-safe — call only while disconnected.
    * @param name Platform-specific port identifier
    *             (e.g. "/dev/ttyUSB0", "COM3").
    */
@@ -244,6 +245,7 @@ class SignalGeneratorController
    * Must be called before connectDevice().  The default is
    * @c kSigGenDefaultBaudRate (9600).
    *
+   * @warning Not thread-safe — call only while disconnected.
    * @param baud Baud rate value (e.g. 9600, 115200).
    */
   void setBaudRate(qint32 baud);
@@ -263,6 +265,7 @@ class SignalGeneratorController
    * before connect to force a specific command set, or after connect
    * to override the auto-detected vendor.
    *
+   * @warning Not thread-safe — call only while disconnected.
    * @param vendor The target instrument vendor.
    *
    * @see SignalGeneratorVendor
@@ -287,6 +290,7 @@ class SignalGeneratorController
    * address outputs as `SOURce1:`, `SOURce2:`, etc.  The default is
    * @c kSigGenDefaultChannel (1).
    *
+   * @warning Not thread-safe — call only while disconnected.
    * @param channel 1-based channel number.
    */
   void setChannel(int channel);

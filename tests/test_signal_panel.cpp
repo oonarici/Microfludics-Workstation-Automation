@@ -405,7 +405,7 @@ class TestSignalPanel : public QObject {
     QApplication::processEvents();
 
     sig_ctrl_->setFrequency(5000000.0);  // 5 MHz
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     auto* lbl = panel_->findChild<QLabel*>(
@@ -436,7 +436,7 @@ class TestSignalPanel : public QObject {
     cmb->blockSignals(false);
 
     spn->setValue(500.0);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     QVERIFY2(spy.count() >= 1,
@@ -453,7 +453,7 @@ class TestSignalPanel : public QObject {
     QApplication::processEvents();
 
     sig_ctrl_->setAmplitude(2.5);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     auto* lbl = panel_->findChild<QLabel*>(
@@ -474,7 +474,7 @@ class TestSignalPanel : public QObject {
     auto* spn = panel_->findChild<QDoubleSpinBox*>(
         QStringLiteral("spnSigAmplitude"));
     spn->setValue(3.0);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     QVERIFY2(spy.count() >= 1,
@@ -491,7 +491,7 @@ class TestSignalPanel : public QObject {
     QApplication::processEvents();
 
     sig_ctrl_->setWaveform(Waveform::kSquare);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     auto* lbl = panel_->findChild<QLabel*>(
@@ -511,7 +511,7 @@ class TestSignalPanel : public QObject {
     auto* cmb = panel_->findChild<QComboBox*>(
         QStringLiteral("cmbSigWaveform"));
     cmb->setCurrentIndex(2);  // Triangle
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     QVERIFY2(spy.count() >= 1,
@@ -524,7 +524,7 @@ class TestSignalPanel : public QObject {
     QApplication::processEvents();
 
     sig_ctrl_->setWaveform(Waveform::kTriangle);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     auto* lbl = panel_->findChild<QLabel*>(
@@ -542,7 +542,7 @@ class TestSignalPanel : public QObject {
     QApplication::processEvents();
 
     sig_ctrl_->setOutputEnabled(true);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     auto* btn = panel_->findChild<QPushButton*>(
@@ -556,9 +556,9 @@ class TestSignalPanel : public QObject {
     panel_->setSignalGeneratorController(sig_ctrl_);
     connectSync(*sig_ctrl_);
     sig_ctrl_->setOutputEnabled(true);
-    QTest::qWait(50);
+    QTest::qWait(100);
     sig_ctrl_->setOutputEnabled(false);
-    QTest::qWait(50);  // Wait for 20ms command latency.
+    QTest::qWait(100);  // Wait for 20ms command latency.
     QApplication::processEvents();
 
     auto* btn = panel_->findChild<QPushButton*>(

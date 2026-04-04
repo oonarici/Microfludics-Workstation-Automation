@@ -10,9 +10,15 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
+# Custom CMake modules (FindQmixSDK, FindPylon, etc.)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
 # Find Qt6
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
 find_package(Qt6 OPTIONAL_COMPONENTS SerialPort)
+
+# Optional vendor SDKs (only available on specific platforms)
+find_package(QmixSDK QUIET)
 
 # Testing
 include(CTest)

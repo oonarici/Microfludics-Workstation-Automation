@@ -273,14 +273,20 @@ void TestMockSignalGeneratorController::
     test_setWaveform_sine_emitsWaveformChanged() {
   MockSignalGeneratorController ctrl;
   // Start at kSine (default), change to square first, then back to sine.
-  ctrl.setWaveform(Waveform::kSquare);
-  QTest::qWait(100);
+  // Use a scoped spy to guarantee the kSquare transition has completed
+  // before setting up the real spy — avoids a qWait race on loaded CI.
+  {
+    QSignalSpy setup_spy(
+        &ctrl,
+        &SignalGeneratorControllerInterface::waveformChanged);
+    ctrl.setWaveform(Waveform::kSquare);
+    QTRY_COMPARE(setup_spy.count(), 1);
+  }
   QSignalSpy spy(
       &ctrl,
       &SignalGeneratorControllerInterface::waveformChanged);
   ctrl.setWaveform(Waveform::kSine);
-  QTest::qWait(100);  // Wait for 20ms command latency.
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(
       qvariant_cast<Waveform>(spy.at(0).at(0)),
       Waveform::kSine);

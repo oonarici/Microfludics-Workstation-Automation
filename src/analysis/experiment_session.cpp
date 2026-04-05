@@ -84,10 +84,11 @@ void ExperimentSession::addVnaMeasurement(double start_frequency,
     return;
   }
 
-  if (frequencies.size() != magnitudes.size() ||
+  if (num_points <= 0 ||
+      frequencies.size() != magnitudes.size() ||
       frequencies.size() != num_points) {
-    qWarning() << "ExperimentSession::addVnaMeasurement: array sizes do not"
-                  " match num_points — measurement discarded";
+    qWarning() << "ExperimentSession::addVnaMeasurement: invalid num_points or"
+                  " array size mismatch — measurement discarded";
     return;
   }
 

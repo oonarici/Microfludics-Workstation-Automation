@@ -1,6 +1,7 @@
 add_subdirectory(core)
 add_subdirectory(hardware)
 add_subdirectory(gui)
+add_subdirectory(analysis)
 add_subdirectory(app)
 
 add_executable(MWA main.cpp)

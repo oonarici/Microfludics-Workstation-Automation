@@ -46,7 +46,6 @@ struct CameraFrame {
 struct VnaMeasurement {
   double          start_frequency;  ///< Sweep start frequency (Hz).
   double          stop_frequency;   ///< Sweep stop frequency (Hz).
-  int             num_points;       ///< Number of sweep points.
   QVector<double> frequencies;      ///< Per-point frequency values (Hz).
   QVector<double> magnitudes;       ///< Per-point S-parameter magnitudes (dB).
   QDateTime       timestamp;        ///< Wall-clock time when the sweep completed.

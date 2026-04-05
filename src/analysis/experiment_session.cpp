@@ -90,7 +90,7 @@ void ExperimentSession::addVnaMeasurement(const QVector<double>& frequencies,
   }
 
   vna_measurements_.append(VnaMeasurement{
-      start_frequency, stop_frequency, num_points,
+      start_frequency, stop_frequency,
       frequencies, magnitudes,
       QDateTime::currentDateTime()});
   emit vnaMeasurementAdded(vna_measurements_.size());

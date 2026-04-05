@@ -167,7 +167,6 @@ class TestExperimentSession : public QObject {
     const auto& m = s.vnaMeasurements().at(0);
     QCOMPARE(m.start_frequency, 1e9);
     QCOMPARE(m.stop_frequency, 3e9);
-    QCOMPARE(m.num_points, 3);
     QCOMPARE(m.frequencies, freqs);
     QCOMPARE(m.magnitudes, mags);
     QVERIFY(m.timestamp.isValid());

@@ -17,10 +17,10 @@
  * from the Doxygen comments and the protocol specification in
  * `docs/protocols/basler_pylon_spec.md`.
  *
- * @note This header is not currently compiled via CMake.  When the
- *       .cpp implementation is written, both files will be added to a
- *       `if(Pylon_FOUND)` conditional block in
- *       `src/hardware/CMakeLists.txt`.
+ * @note This header is conditionally compiled when the Pylon SDK is
+ *       found (`if(Pylon_FOUND)` in `src/hardware/CMakeLists.txt`).
+ *       The .cpp implementation will be added to the same block when
+ *       physical hardware becomes available.
  *
  * @note The GUI always works against CameraControllerInterface*.
  *       On platforms without hardware, MockCameraController is used
@@ -272,7 +272,7 @@ class BaslerCameraController : public CameraControllerInterface {
    * Enqueues the shutdown sequence on the CommandQueue:
    * 1. stopCapture() if capturing
    * 2. camera_->Close()
-   * 3. Destroy camera_ and converter_
+   * 3. Destroy camera_
    * 4. Transition to kDisconnected and emit stateChanged()
    */
   void disconnectDevice() override;

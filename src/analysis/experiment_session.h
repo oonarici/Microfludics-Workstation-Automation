@@ -17,7 +17,6 @@
 #include <QDateTime>
 #include <QImage>
 #include <QObject>
-#include <QRect>
 #include <QString>
 #include <QVector>
 
@@ -47,7 +46,6 @@ struct CameraFrame {
 struct VnaMeasurement {
   double          start_frequency;  ///< Sweep start frequency (Hz).
   double          stop_frequency;   ///< Sweep stop frequency (Hz).
-  int             num_points;       ///< Number of sweep points.
   QVector<double> frequencies;      ///< Per-point frequency values (Hz).
   QVector<double> magnitudes;       ///< Per-point S-parameter magnitudes (dB).
   QDateTime       timestamp;        ///< Wall-clock time when the sweep completed.
@@ -222,21 +220,23 @@ class ExperimentSession : public QObject {
    * @brief Append a VNA measurement.
    *
    * Records a completed frequency sweep. @p frequencies and @p magnitudes
-   * must be the same length (@p num_points); if they differ the call is a
-   * no-op and a warning is logged.
+   * must each have exactly @p num_points elements; if any size disagrees the
+   * call is a no-op and a warning is logged.
    *
-   * @param frequencies      Per-point excitation frequencies (Hz).
-   * @param magnitudes       Per-point S-parameter magnitudes (dB).
    * @param start_frequency  Sweep start frequency (Hz).
    * @param stop_frequency   Sweep stop frequency (Hz).
-   * @param num_points       Number of sweep points.
+   * @param num_points       Expected number of sweep points (validation only —
+   *                         not stored; use frequencies.size() on the returned
+   *                         VnaMeasurement to query the count).
+   * @param frequencies      Per-point excitation frequencies (Hz).
+   * @param magnitudes       Per-point S-parameter magnitudes (dB).
    *
    * @note Silently ignored if the session is not active.
    */
-  void addVnaMeasurement(const QVector<double>& frequencies,
-                         const QVector<double>& magnitudes,
-                         double start_frequency, double stop_frequency,
-                         int num_points);
+  void addVnaMeasurement(double start_frequency, double stop_frequency,
+                         int num_points,
+                         const QVector<double>& frequencies,
+                         const QVector<double>& magnitudes);
 
   /**
    * @brief Append a pump telemetry sample.

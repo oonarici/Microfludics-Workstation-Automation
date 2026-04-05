@@ -42,7 +42,6 @@
 #include <QString>
 #include <QVector>
 
-#include <cstdint>
 #include <memory>
 
 #include "hardware/command_queue.h"

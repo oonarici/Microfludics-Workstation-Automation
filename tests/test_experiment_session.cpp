@@ -196,6 +196,18 @@ class TestExperimentSession : public QObject {
     QCOMPARE(spy.count(), 0);
   }
 
+  void vnaMeasurementDiscardedWhenEmpty() {
+    ExperimentSession s;
+    s.start("R");
+    QSignalSpy spy(&s, &ExperimentSession::vnaMeasurementAdded);
+
+    // num_points=0 with empty arrays — zero-point sweep is invalid
+    s.addVnaMeasurement(1e9, 2e9, 0, {}, {});
+
+    QCOMPARE(s.vnaMeasurementCount(), 0);
+    QCOMPARE(spy.count(), 0);
+  }
+
   void vnaMeasurementSignalEmittedWithCorrectCount() {
     ExperimentSession s;
     s.start("R");

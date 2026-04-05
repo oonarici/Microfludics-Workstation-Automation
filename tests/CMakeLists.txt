@@ -362,6 +362,19 @@ target_link_libraries(test_session_serializer PRIVATE
 add_test(NAME test_session_serializer COMMAND test_session_serializer)
 
 # ---------------------------------------------------------------------------
+# VnaCsvExporter tests
+# ---------------------------------------------------------------------------
+add_executable(test_vna_csv_exporter test_vna_csv_exporter.cpp)
+
+target_link_libraries(test_vna_csv_exporter PRIVATE
+  MwaAnalysis
+  Qt6::Core
+  Qt6::Test
+)
+
+add_test(NAME test_vna_csv_exporter COMMAND test_vna_csv_exporter)
+
+# ---------------------------------------------------------------------------
 # SerialUtils tests (require Qt6::SerialPort)
 # ---------------------------------------------------------------------------
 if(TARGET Qt6::SerialPort)

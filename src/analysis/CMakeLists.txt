@@ -3,6 +3,8 @@ add_library(MwaAnalysis STATIC
   experiment_session.cpp
   session_serializer.h
   session_serializer.cpp
+  vna_csv_exporter.h
+  vna_csv_exporter.cpp
 )
 
 target_include_directories(MwaAnalysis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

@@ -159,7 +159,11 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
 
   const QJsonDocument doc(root);
-  file.write(doc.toJson());
+  const QByteArray json = doc.toJson();
+  if (file.write(json) != static_cast<qint64>(json.size())) {
+    last_error_ = QStringLiteral("Write failed (disk full?): ") + file_path;
+    return false;
+  }
 
   last_error_.clear();
   return true;

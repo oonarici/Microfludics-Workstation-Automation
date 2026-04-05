@@ -19,6 +19,7 @@ find_package(Qt6 OPTIONAL_COMPONENTS SerialPort)
 
 # Optional vendor SDKs (only available on specific platforms)
 find_package(QmixSDK QUIET)
+find_package(Pylon QUIET)
 
 # Testing
 include(CTest)

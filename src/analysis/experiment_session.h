@@ -22,6 +22,10 @@
 
 namespace mwa::analysis {
 
+// Forward declaration — allows SessionSerializer to access private members
+// for efficient deserialization without exposing setter methods on the public API.
+class SessionSerializer;
+
 // ---------------------------------------------------------------------------
 // Per-device data structs
 // ---------------------------------------------------------------------------
@@ -439,6 +443,8 @@ class ExperimentSession : public QObject {
   void stageSampleAdded(int count);
 
  private:
+  friend class SessionSerializer;  // Granted for direct deserialization access.
+
   QString   name_;         ///< Session name.
   QString   description_;  ///< Optional session description.
   QDateTime start_time_;   ///< Wall-clock time when start() was called.

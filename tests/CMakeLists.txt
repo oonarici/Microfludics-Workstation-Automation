@@ -348,6 +348,20 @@ target_link_libraries(test_experiment_session PRIVATE
 add_test(NAME test_experiment_session COMMAND test_experiment_session)
 
 # ---------------------------------------------------------------------------
+# SessionSerializer tests
+# ---------------------------------------------------------------------------
+add_executable(test_session_serializer test_session_serializer.cpp)
+
+target_link_libraries(test_session_serializer PRIVATE
+  MwaAnalysis
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_session_serializer COMMAND test_session_serializer)
+
+# ---------------------------------------------------------------------------
 # SerialUtils tests (require Qt6::SerialPort)
 # ---------------------------------------------------------------------------
 if(TARGET Qt6::SerialPort)

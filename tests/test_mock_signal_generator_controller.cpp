@@ -238,8 +238,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::frequencyChanged);
   ctrl.setFrequency(5000.0);
-  QTest::qWait(100);  // Wait for 20ms command latency (extra margin for CI).
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toDouble(), 5000.0);
 }
 
@@ -257,8 +256,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::amplitudeChanged);
   ctrl.setAmplitude(3.3);
-  QTest::qWait(100);  // Wait for 20ms command latency.
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toDouble(), 3.3);
 }
 
@@ -299,8 +297,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::waveformChanged);
   ctrl.setWaveform(Waveform::kSquare);
-  QTest::qWait(100);  // Wait for 20ms command latency.
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(
       qvariant_cast<Waveform>(spy.at(0).at(0)),
       Waveform::kSquare);
@@ -313,8 +310,7 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::waveformChanged);
   ctrl.setWaveform(Waveform::kTriangle);
-  QTest::qWait(100);  // Wait for 20ms command latency.
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(
       qvariant_cast<Waveform>(spy.at(0).at(0)),
       Waveform::kTriangle);
@@ -334,22 +330,27 @@ void TestMockSignalGeneratorController::
       &ctrl,
       &SignalGeneratorControllerInterface::outputStateChanged);
   ctrl.setOutputEnabled(true);
-  QTest::qWait(100);  // Wait for 20ms command latency.
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toBool(), true);
 }
 
 void TestMockSignalGeneratorController::
     test_setOutputEnabled_false_emitsOutputStateChanged() {
   MockSignalGeneratorController ctrl;
-  ctrl.setOutputEnabled(true);
-  QTest::qWait(100);
+  // Use a scoped spy to guarantee the setOutputEnabled(true) signal has fired
+  // before setting up the real spy — avoids a qWait race on loaded CI.
+  {
+    QSignalSpy setup_spy(
+        &ctrl,
+        &SignalGeneratorControllerInterface::outputStateChanged);
+    ctrl.setOutputEnabled(true);
+    QTRY_COMPARE(setup_spy.count(), 1);
+  }
   QSignalSpy spy(
       &ctrl,
       &SignalGeneratorControllerInterface::outputStateChanged);
   ctrl.setOutputEnabled(false);
-  QTest::qWait(100);  // Wait for 20ms command latency.
-  QCOMPARE(spy.count(), 1);
+  QTRY_COMPARE(spy.count(), 1);
   QCOMPARE(spy.at(0).at(0).toBool(), false);
 }
 

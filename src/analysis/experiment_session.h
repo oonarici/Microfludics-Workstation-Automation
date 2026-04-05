@@ -443,7 +443,7 @@ class ExperimentSession : public QObject {
   void stageSampleAdded(int count);
 
  private:
-  friend class SessionSerializer;  // Granted for direct deserialization access.
+  friend class SessionSerializer;
 
   QString   name_;         ///< Session name.
   QString   description_;  ///< Optional session description.

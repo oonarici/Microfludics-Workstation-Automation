@@ -99,7 +99,6 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
   root["camera_frames"] = frames;
 
-  // VNA measurements.
   QJsonArray vna;
   for (const VnaMeasurement& m : session.vna_measurements_) {
     QJsonObject obj;
@@ -112,7 +111,6 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
   root["vna_measurements"] = vna;
 
-  // Pump samples.
   QJsonArray pump;
   for (const PumpSample& sample : session.pump_samples_) {
     QJsonObject obj;
@@ -123,7 +121,6 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
   root["pump_samples"] = pump;
 
-  // LED samples.
   QJsonArray led;
   for (const LedSample& sample : session.led_samples_) {
     QJsonObject obj;
@@ -134,7 +131,6 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
   root["led_samples"] = led;
 
-  // Signal-generator samples.
   QJsonArray siggen;
   for (const SigGenSample& sample : session.sig_gen_samples_) {
     QJsonObject obj;
@@ -145,7 +141,6 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
   root["sig_gen_samples"] = siggen;
 
-  // Stage samples.
   QJsonArray stage;
   for (const StageSample& sample : session.stage_samples_) {
     QJsonObject obj;
@@ -157,7 +152,6 @@ bool SessionSerializer::save(const ExperimentSession& session,
   }
   root["stage_samples"] = stage;
 
-  // Write to file.
   QFile file(file_path);
   if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
     last_error_ = QStringLiteral("Cannot open file for writing: ") + file_path;
@@ -210,7 +204,6 @@ bool SessionSerializer::load(const QString& file_path,
   session.end_time_    = strToDt(root.value(QStringLiteral("end_time")).toString());
   session.is_active_   = root.value(QStringLiteral("is_active")).toBool(false);
 
-  // Camera frames.
   for (const QJsonValue& v : root.value(QStringLiteral("camera_frames")).toArray()) {
     const QJsonObject obj = v.toObject();
     CameraFrame frame;
@@ -219,7 +212,6 @@ bool SessionSerializer::load(const QString& file_path,
     session.camera_frames_.append(frame);
   }
 
-  // VNA measurements.
   for (const QJsonValue& v :
        root.value(QStringLiteral("vna_measurements")).toArray()) {
     const QJsonObject obj = v.toObject();
@@ -234,7 +226,6 @@ bool SessionSerializer::load(const QString& file_path,
     session.vna_measurements_.append(m);
   }
 
-  // Pump samples.
   for (const QJsonValue& v :
        root.value(QStringLiteral("pump_samples")).toArray()) {
     const QJsonObject obj = v.toObject();
@@ -245,7 +236,6 @@ bool SessionSerializer::load(const QString& file_path,
     session.pump_samples_.append(sample);
   }
 
-  // LED samples.
   for (const QJsonValue& v :
        root.value(QStringLiteral("led_samples")).toArray()) {
     const QJsonObject obj = v.toObject();
@@ -256,7 +246,6 @@ bool SessionSerializer::load(const QString& file_path,
     session.led_samples_.append(sample);
   }
 
-  // Signal-generator samples.
   for (const QJsonValue& v :
        root.value(QStringLiteral("sig_gen_samples")).toArray()) {
     const QJsonObject obj = v.toObject();
@@ -267,7 +256,6 @@ bool SessionSerializer::load(const QString& file_path,
     session.sig_gen_samples_.append(sample);
   }
 
-  // Stage samples.
   for (const QJsonValue& v :
        root.value(QStringLiteral("stage_samples")).toArray()) {
     const QJsonObject obj = v.toObject();

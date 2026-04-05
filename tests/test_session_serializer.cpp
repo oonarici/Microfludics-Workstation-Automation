@@ -153,14 +153,7 @@ class TestSessionSerializer : public QObject {
 
     QCOMPARE(loaded.cameraFrameCount(), 1);
     const QImage& loaded_img = loaded.cameraFrames().at(0).image;
-    QCOMPARE(loaded_img.width(),  img.width());
-    QCOMPARE(loaded_img.height(), img.height());
-    // Verify every pixel survived Base64 → PNG → Base64 round-trip.
-    for (int y = 0; y < img.height(); ++y) {
-      for (int x = 0; x < img.width(); ++x) {
-        QCOMPARE(loaded_img.pixel(x, y), img.pixel(x, y));
-      }
-    }
+    QCOMPARE(loaded_img, img);
   }
 
   void roundTrip_cameraFrameTimestamp() {
@@ -426,8 +419,8 @@ class TestSessionSerializer : public QObject {
 
   void load_failsOnCorruptJson() {
     QTemporaryFile tmp;
-    const bool c1 = tmp.open();
-    Q_ASSERT(c1);
+    const bool opened = tmp.open();
+    Q_ASSERT(opened);
     tmp.write("{ this is not valid json !!!");
     tmp.close();
 
@@ -444,8 +437,8 @@ class TestSessionSerializer : public QObject {
 
   void load_failsOnWrongFormatVersion() {
     QTemporaryFile tmp;
-    const bool c2 = tmp.open();
-    Q_ASSERT(c2);
+    const bool opened = tmp.open();
+    Q_ASSERT(opened);
     tmp.write(R"({"format_version": 999, "name": "x"})");
     tmp.close();
 

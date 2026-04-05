@@ -36,6 +36,67 @@ This document defines the **exact data types, signal/slot contracts, and value r
 
 ---
 
+## Interface Type Contract (Standard I/O Principle)
+
+The interfaces are the **type firewall** between vendor SDKs and the rest of the application. This guarantee must be maintained by every driver implementation and by every consumer of hardware data (GUI, Analysis tool, session recording).
+
+### The Rule
+
+**No vendor-specific type may cross the interface boundary.**
+
+Every method parameter and return type on every `*Interface` class must be a Qt primitive or Qt class. Vendor SDK types (Pylon, QmixSDK, SCPI transport objects, etc.) are permitted only inside the concrete driver `.cpp` files.
+
+### Type Table
+
+| Device | Input types (caller → driver) | Output types (driver → caller) |
+|--------|-------------------------------|-------------------------------|
+| LED | `bool`, `double` | `bool`, `double` |
+| Pump | `double` (µL, µL/min) | `double`, `bool` |
+| Signal Generator | `double` (Hz, V), `Waveform` enum | `double`, `bool` |
+| Network Analyzer | `double` (Hz), `int` | `QVector<double>`, `bool` |
+| Camera | `double` (ms, gain), `QRect` | `QImage`, `double`, `bool` |
+| Stage | `double` (mm, mm/s) | `double`, `bool` |
+
+All enums (`Waveform`, `DeviceState`, `DeviceType`) are defined in the interface headers — never in vendor headers.
+
+### Unit Conversion Responsibility
+
+All unit conversions between MWA units and vendor SDK units are the **driver's responsibility**, performed inside the concrete `.cpp` file before any cross-boundary call.
+
+| Driver | MWA unit | SDK unit | Conversion |
+|--------|----------|----------|------------|
+| BaslerCameraController | ms (exposure) | µs | `us = ms × 1000` |
+| BaslerCameraController | gain multiplier | dB | `dB = 20 × log10(x)` |
+| PumpController | µL, µL/min | SDK counts | per syringe calibration |
+| NetworkAnalyzerController | Hz | Hz (SCPI) | none |
+
+Callers (GUI, Analysis, session model) always work in MWA units and never need to know the SDK unit.
+
+### Analysis Tool and Session Recording
+
+The Analysis tool and `ExperimentSession` model must follow the same rule — they consume data in Qt types, never in vendor types.
+
+**Correct — session stores Qt types:**
+```cpp
+struct ExperimentSession {
+  QVector<QImage>   camera_frames;    // from frameReady(QImage)
+  QVector<double>   vna_frequencies;  // from traceFrequencies()
+  QVector<double>   vna_magnitudes;   // from traceMagnitudes()
+  QVector<double>   pump_positions;   // from positionChanged(double)
+};
+```
+
+**Wrong — vendor type escapes the driver:**
+```cpp
+struct ExperimentSession {
+  Pylon::CGrabResultPtr last_grab;  // NEVER — Pylon type outside driver
+};
+```
+
+This ensures that swapping one hardware vendor for another (e.g., Basler → Teledyne camera) requires changes only inside the concrete driver class. The GUI, Analysis tool, and session model are unaffected.
+
+---
+
 ## 1. LED Light Source (DEV-LED)
 
 ### Real Hardware

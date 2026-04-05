@@ -334,6 +334,20 @@ target_link_libraries(test_error_handler PRIVATE
 add_test(NAME test_error_handler COMMAND test_error_handler)
 
 # ---------------------------------------------------------------------------
+# ExperimentSession tests
+# ---------------------------------------------------------------------------
+add_executable(test_experiment_session test_experiment_session.cpp)
+
+target_link_libraries(test_experiment_session PRIVATE
+  MwaAnalysis
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_experiment_session COMMAND test_experiment_session)
+
+# ---------------------------------------------------------------------------
 # SerialUtils tests (require Qt6::SerialPort)
 # ---------------------------------------------------------------------------
 if(TARGET Qt6::SerialPort)

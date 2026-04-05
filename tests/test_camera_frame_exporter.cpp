@@ -6,6 +6,7 @@
 #include <QtTest>
 #include <QDir>
 #include <QImage>
+#include <QImageWriter>
 #include <QTemporaryDir>
 
 #include "analysis/camera_frame_exporter.h"
@@ -114,9 +115,14 @@ class TestCameraFrameExporter : public QObject {
 
   // -------------------------------------------------------------------------
   // TIFF format: files have .tiff extension and no .png files appear
+  // (skipped if the Qt TIFF image plugin is not available on this platform)
   // -------------------------------------------------------------------------
 
   void exportToDir_tiffFormat_writesTiffFiles() {
+    if (!QImageWriter::supportedImageFormats().contains("tiff")) {
+      QSKIP("Qt TIFF image plugin not available on this platform — skipping");
+    }
+
     ExperimentSession session;
     session.start("Tiff");
     addFrames(session, 3);

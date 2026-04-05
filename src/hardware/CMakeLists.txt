@@ -72,3 +72,12 @@ if(QmixSDK_FOUND)
   target_link_libraries(MwaHardware PRIVATE QmixSDK::QmixSDK)
   target_compile_definitions(MwaHardware PRIVATE MWA_HAS_QMIXSDK)
 endif()
+
+# Basler Pylon camera driver — requires Pylon SDK
+if(Pylon_FOUND)
+  target_sources(MwaHardware PRIVATE
+    camera/basler_camera_controller.h
+  )
+  target_link_libraries(MwaHardware PRIVATE Pylon::Pylon)
+  target_compile_definitions(MwaHardware PRIVATE MWA_HAS_PYLON)
+endif()

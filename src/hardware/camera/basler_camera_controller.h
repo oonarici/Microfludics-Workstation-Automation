@@ -51,7 +51,6 @@
 // just to parse this header in IDE / static-analysis tools.
 namespace Pylon {
 class CBaslerUniversalInstantCamera;
-class CImageFormatConverter;
 }  // namespace Pylon
 
 namespace mwa::hardware {
@@ -70,15 +69,9 @@ inline constexpr int kCameraDefaultRoiWidth = 640;
 /// Default region of interest height in pixels.
 inline constexpr int kCameraDefaultRoiHeight = 480;
 
-/// Timeout for the Pylon connect / open sequence in milliseconds.
-inline constexpr int kCameraConnectTimeoutMs = 10000;
-
 /// Timeout for a single GrabOne or RetrieveResult call in
 /// milliseconds.
 inline constexpr int kCameraGrabTimeoutMs = 5000;
-
-/// Minimum capture interval in milliseconds (~30 fps cap).
-inline constexpr int kCameraMinCaptureIntervalMs = 33;
 
 /**
  * @class BaslerCameraController
@@ -149,8 +142,7 @@ inline constexpr int kCameraMinCaptureIntervalMs = 33;
  *     `camera_->Height.SetValue(roi_.height());`
  *     `camera_->OffsetX.SetValue(roi_.x());`
  *     `camera_->OffsetY.SetValue(roi_.y());`
- * 11. Create the ImageFormatConverter for Mono8 -> QImage conversion
- * 12. Transition to DeviceState::kConnected and emit stateChanged()
+ * 11. Transition to DeviceState::kConnected and emit stateChanged()
  *
  * If any step fails (Pylon::GenericException), the state transitions
  * to kError and errorOccurred() is emitted with the exception
@@ -159,14 +151,14 @@ inline constexpr int kCameraMinCaptureIntervalMs = 33;
  * ### Disconnection workflow
  * 1. Stop any active capture via stopCapture()
  * 2. `camera_->Close()` -- close the GenICam transport
- * 3. Destroy camera_ and converter_ smart pointers
+ * 3. Destroy camera_ smart pointer
  * 4. Transition to DeviceState::kDisconnected
  *
  * ### Single-frame grab workflow (grabSingle)
  * 1. Enqueue on CommandQueue:
  * 2. `camera_->GrabOne(kCameraGrabTimeoutMs, grab_result)`
  * 3. If `grab_result->GrabSucceeded()`:
- *    - Convert buffer to QImage via pylonToQImage()
+ *    - Convert buffer to QImage via pylonToQImage() (file-scope helper in .cpp)
  *    - Cache as last_frame_ under mutex_
  *    - Emit frameReady(last_frame_)
  * 4. Otherwise emit errorOccurred() with the grab error description
@@ -263,7 +255,7 @@ class BaslerCameraController : public CameraControllerInterface {
    *
    * Transitions immediately to DeviceState::kConnecting, then
    * enqueues the full connection sequence on the CommandQueue
-   * (see class-level documentation for the 12-step workflow).
+   * (see class-level documentation for the 11-step workflow).
    *
    * All Pylon calls are wrapped in a try/catch for
    * `Pylon::GenericException`.  On failure the state transitions
@@ -400,7 +392,7 @@ class BaslerCameraController : public CameraControllerInterface {
    *
    * Enqueues on the CommandQueue:
    * 1. `camera_->GrabOne(kCameraGrabTimeoutMs, grab_result)`
-   * 2. If succeeded: convert via pylonToQImage(), cache, emit
+   * 2. If succeeded: convert via pylonToQImage() (file-scope helper in .cpp), cache, emit
    *    frameReady()
    * 3. If failed: emit errorOccurred() with the grab error
    *    description from `grab_result->GetErrorDescription()`
@@ -481,44 +473,6 @@ class BaslerCameraController : public CameraControllerInterface {
   void setState(DeviceState new_state);
 
   /**
-   * @brief Convert a Pylon grab result buffer to a QImage.
-   *
-   * Copies the raw image buffer from the grab result into a
-   * `QImage::Format_Grayscale8` image.  Handles stride mismatch
-   * between the camera buffer and QImage by copying row-by-row
-   * when necessary.
-   *
-   * @code
-   *   const int w = grab_result->GetWidth();
-   *   const int h = grab_result->GetHeight();
-   *   const size_t stride = grab_result->GetStride();
-   *   const auto* src = static_cast<const uint8_t*>(
-   *       grab_result->GetBuffer());
-   *
-   *   QImage image(w, h, QImage::Format_Grayscale8);
-   *   if (stride == static_cast<size_t>(image.bytesPerLine())) {
-   *     memcpy(image.bits(), src, h * stride);
-   *   } else {
-   *     for (int row = 0; row < h; ++row) {
-   *       memcpy(image.scanLine(row), src + row * stride, w);
-   *     }
-   *   }
-   *   return image;
-   * @endcode
-   *
-   * @param grab_result Pointer to the Pylon grab result (passed
-   *        as `void*` to avoid exposing the Pylon CGrabResultPtr
-   *        type in the header).
-   * @return A QImage in Format_Grayscale8, or a null QImage on
-   *         failure.
-   *
-   * @note In the .cpp implementation, the parameter type will be
-   *       `const Pylon::CGrabResultPtr&`.  The `void*` signature
-   *       here avoids a Pylon SDK header dependency.
-   */
-  [[nodiscard]] QImage pylonToQImage(const void* grab_result) const;
-
-  /**
    * @brief Convert an MWA exposure value (ms) to Pylon units (us).
    *
    * @param ms Exposure in milliseconds.
@@ -564,10 +518,6 @@ class BaslerCameraController : public CameraControllerInterface {
   /// destroyed during disconnectDevice().
   std::unique_ptr<Pylon::CBaslerUniversalInstantCamera> camera_;
 
-  /// Pylon image format converter (Mono8 output).  Created during
-  /// connectDevice().
-  std::unique_ptr<Pylon::CImageFormatConverter> converter_;
-
   mutable QMutex mutex_;  ///< Guards all cached state below.
 
   // ── Cached state (read/written under mutex_) ─────────────────
@@ -579,9 +529,6 @@ class BaslerCameraController : public CameraControllerInterface {
              kCameraDefaultRoiHeight};             ///< Region of interest.
   bool is_capturing_{false};                       ///< Capture in progress.
   QImage last_frame_;                              ///< Last captured frame.
-
-  // ── Sensor limits (read from camera during connect) ──────────
-
   int max_sensor_width_{0};   ///< Maximum sensor width in pixels.
   int max_sensor_height_{0};  ///< Maximum sensor height in pixels.
 

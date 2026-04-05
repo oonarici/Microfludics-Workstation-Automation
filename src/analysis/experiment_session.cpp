@@ -22,9 +22,11 @@ ExperimentSession::ExperimentSession(QObject* parent) : QObject(parent) {}
 void ExperimentSession::start(const QString& name,
                                const QString& description) {
   if (is_active_) {
-    // sessionEnded is emitted here synchronously; direct-connection listeners
-    // can still read data. clear() below wipes it — queued connections will
-    // see an empty session.
+    // sessionEnded is emitted here synchronously so direct-connection listeners
+    // can still read accumulated data from the closing session. clear() below
+    // wipes that data immediately after, so queued-connection listeners will
+    // receive the signal only after the session is already empty — they must
+    // not rely on reading session state in their sessionEnded handler.
     end();
   }
 
@@ -73,11 +75,11 @@ void ExperimentSession::addCameraFrame(const QImage& image) {
   emit cameraFrameAdded(camera_frames_.size());
 }
 
-void ExperimentSession::addVnaMeasurement(const QVector<double>& frequencies,
-                                           const QVector<double>& magnitudes,
-                                           double start_frequency,
+void ExperimentSession::addVnaMeasurement(double start_frequency,
                                            double stop_frequency,
-                                           int num_points) {
+                                           int num_points,
+                                           const QVector<double>& frequencies,
+                                           const QVector<double>& magnitudes) {
   if (!is_active_) {
     return;
   }

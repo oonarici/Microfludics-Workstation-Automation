@@ -152,7 +152,7 @@ class TestExperimentSession : public QObject {
 
   void vnaMeasurementNotAcceptedWhenIdle() {
     ExperimentSession s;
-    s.addVnaMeasurement({1e9, 2e9}, {-40.0, -38.0}, 1e9, 2e9, 2);
+    s.addVnaMeasurement(1e9, 2e9, 2, {1e9, 2e9}, {-40.0, -38.0});
     QCOMPARE(s.vnaMeasurementCount(), 0);
   }
 
@@ -161,7 +161,7 @@ class TestExperimentSession : public QObject {
     s.start("R");
     QVector<double> freqs = {1e9, 2e9, 3e9};
     QVector<double> mags  = {-40.0, -35.0, -42.0};
-    s.addVnaMeasurement(freqs, mags, 1e9, 3e9, 3);
+    s.addVnaMeasurement(1e9, 3e9, 3, freqs, mags);
 
     QCOMPARE(s.vnaMeasurementCount(), 1);
     const auto& m = s.vnaMeasurements().at(0);
@@ -178,7 +178,7 @@ class TestExperimentSession : public QObject {
     QSignalSpy spy(&s, &ExperimentSession::vnaMeasurementAdded);
 
     // frequencies has 3 elements, magnitudes has 2 — must be rejected
-    s.addVnaMeasurement({1e9, 2e9, 3e9}, {-40.0, -35.0}, 1e9, 3e9, 3);
+    s.addVnaMeasurement(1e9, 3e9, 3, {1e9, 2e9, 3e9}, {-40.0, -35.0});
 
     QCOMPARE(s.vnaMeasurementCount(), 0);
     QCOMPARE(spy.count(), 0);
@@ -190,7 +190,7 @@ class TestExperimentSession : public QObject {
     QSignalSpy spy(&s, &ExperimentSession::vnaMeasurementAdded);
 
     // arrays match each other but num_points disagrees — must be rejected
-    s.addVnaMeasurement({1e9, 2e9}, {-40.0, -35.0}, 1e9, 2e9, 100);
+    s.addVnaMeasurement(1e9, 2e9, 100, {1e9, 2e9}, {-40.0, -35.0});
 
     QCOMPARE(s.vnaMeasurementCount(), 0);
     QCOMPARE(spy.count(), 0);
@@ -201,8 +201,8 @@ class TestExperimentSession : public QObject {
     s.start("R");
     QSignalSpy spy(&s, &ExperimentSession::vnaMeasurementAdded);
 
-    s.addVnaMeasurement({1e9}, {-40.0}, 1e9, 1e9, 1);
-    s.addVnaMeasurement({2e9}, {-38.0}, 2e9, 2e9, 1);
+    s.addVnaMeasurement(1e9, 1e9, 1, {1e9}, {-40.0});
+    s.addVnaMeasurement(2e9, 2e9, 1, {2e9}, {-38.0});
 
     QCOMPARE(spy.count(), 2);
     QCOMPARE(spy.at(0).at(0).toInt(), 1);
@@ -300,7 +300,7 @@ class TestExperimentSession : public QObject {
     s.end();
 
     s.addCameraFrame(QImage(1, 1, QImage::Format_Grayscale8));
-    s.addVnaMeasurement({1e9}, {-40.0}, 1e9, 1e9, 1);
+    s.addVnaMeasurement(1e9, 1e9, 1, {1e9}, {-40.0});
     s.addPumpSample(1.0, 1.0);
     s.addLedSample(true, 50.0);
     s.addSigGenSample(1e6, 1.0);
@@ -361,7 +361,7 @@ class TestExperimentSession : public QObject {
     for (int i = 0; i < 5; ++i)
       s.addCameraFrame(QImage(1, 1, QImage::Format_Grayscale8));
     for (int i = 0; i < 3; ++i)
-      s.addVnaMeasurement({1e9}, {-40.0}, 1e9, 1e9, 1);
+      s.addVnaMeasurement(1e9, 1e9, 1, {1e9}, {-40.0});
     for (int i = 0; i < 7; ++i)
       s.addPumpSample(static_cast<double>(i), 1.0);
     s.addLedSample(true, 50.0);

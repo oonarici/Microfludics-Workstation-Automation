@@ -22,6 +22,9 @@ ExperimentSession::ExperimentSession(QObject* parent) : QObject(parent) {}
 void ExperimentSession::start(const QString& name,
                                const QString& description) {
   if (is_active_) {
+    // sessionEnded is emitted here synchronously; direct-connection listeners
+    // can still read data. clear() below wipes it — queued connections will
+    // see an empty session.
     end();
   }
 
@@ -79,21 +82,17 @@ void ExperimentSession::addVnaMeasurement(const QVector<double>& frequencies,
     return;
   }
 
-  if (frequencies.size() != magnitudes.size()) {
-    qWarning() << "ExperimentSession::addVnaMeasurement: frequencies and"
-                  " magnitudes have different lengths — measurement discarded";
+  if (frequencies.size() != magnitudes.size() ||
+      frequencies.size() != num_points) {
+    qWarning() << "ExperimentSession::addVnaMeasurement: array sizes do not"
+                  " match num_points — measurement discarded";
     return;
   }
 
-  VnaMeasurement m;
-  m.start_frequency = start_frequency;
-  m.stop_frequency  = stop_frequency;
-  m.num_points      = num_points;
-  m.frequencies     = frequencies;
-  m.magnitudes      = magnitudes;
-  m.timestamp       = QDateTime::currentDateTime();
-
-  vna_measurements_.append(std::move(m));
+  vna_measurements_.append(VnaMeasurement{
+      start_frequency, stop_frequency, num_points,
+      frequencies, magnitudes,
+      QDateTime::currentDateTime()});
   emit vnaMeasurementAdded(vna_measurements_.size());
 }
 

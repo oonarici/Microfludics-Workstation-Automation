@@ -17,7 +17,6 @@
 #include <QDateTime>
 #include <QImage>
 #include <QObject>
-#include <QRect>
 #include <QString>
 #include <QVector>
 

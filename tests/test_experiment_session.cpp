@@ -74,6 +74,21 @@ class TestExperimentSession : public QObject {
     QCOMPARE(s.name(), QString("Run 2"));
   }
 
+  void startWhileActiveClearsPreviousData() {
+    ExperimentSession s;
+    s.start("Run 1");
+    s.addCameraFrame(QImage(1, 1, QImage::Format_Grayscale8));
+    s.addPumpSample(5.0, 1.0);
+    QCOMPARE(s.cameraFrameCount(), 1);
+
+    s.start("Run 2");
+
+    QCOMPARE(s.cameraFrameCount(), 0);
+    QCOMPARE(s.pumpSampleCount(), 0);
+    QVERIFY(s.isActive());
+    QCOMPARE(s.name(), QString("Run 2"));
+  }
+
   // -------------------------------------------------------------------------
   // Signals from lifecycle
   // -------------------------------------------------------------------------
@@ -165,6 +180,18 @@ class TestExperimentSession : public QObject {
 
     // frequencies has 3 elements, magnitudes has 2 — must be rejected
     s.addVnaMeasurement({1e9, 2e9, 3e9}, {-40.0, -35.0}, 1e9, 3e9, 3);
+
+    QCOMPARE(s.vnaMeasurementCount(), 0);
+    QCOMPARE(spy.count(), 0);
+  }
+
+  void vnaMeasurementDiscardedWhenNumPointsMismatch() {
+    ExperimentSession s;
+    s.start("R");
+    QSignalSpy spy(&s, &ExperimentSession::vnaMeasurementAdded);
+
+    // arrays match each other but num_points disagrees — must be rejected
+    s.addVnaMeasurement({1e9, 2e9}, {-40.0, -35.0}, 1e9, 2e9, 100);
 
     QCOMPARE(s.vnaMeasurementCount(), 0);
     QCOMPARE(spy.count(), 0);
@@ -303,6 +330,7 @@ class TestExperimentSession : public QObject {
 
     QVERIFY(!s.isActive());
     QVERIFY(s.name().isEmpty());
+    QVERIFY(s.description().isEmpty());
     QVERIFY(!s.startTime().isValid());
     QVERIFY(!s.endTime().isValid());
     QCOMPARE(s.cameraFrameCount(), 0);

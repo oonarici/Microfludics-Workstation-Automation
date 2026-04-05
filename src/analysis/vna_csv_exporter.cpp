@@ -46,13 +46,14 @@ bool VnaCsvExporter::exportToFile(const ExperimentSession& session,
     const QString ts = m.timestamp.isValid()
                            ? m.timestamp.toString(Qt::ISODateWithMs)
                            : QString{};
+    const QString start_freq = QString::number(m.start_frequency, 'f', 0);
+    const QString stop_freq  = QString::number(m.stop_frequency, 'f', 0);
 
-    const int num_points = m.frequencies.size();
-    for (int i = 0; i < num_points; ++i) {
+    for (int i = 0; i < m.frequencies.size(); ++i) {
       out << sweep_idx << ','
           << ts << ','
-          << QString::number(m.start_frequency, 'f', 0) << ','
-          << QString::number(m.stop_frequency, 'f', 0) << ','
+          << start_freq << ','
+          << stop_freq << ','
           << QString::number(m.frequencies[i], 'f', 6) << ','
           << QString::number(m.magnitudes[i], 'f', 6) << '\n';
     }

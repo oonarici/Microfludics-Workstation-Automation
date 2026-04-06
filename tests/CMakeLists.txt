@@ -375,6 +375,20 @@ target_link_libraries(test_vna_csv_exporter PRIVATE
 add_test(NAME test_vna_csv_exporter COMMAND test_vna_csv_exporter)
 
 # ---------------------------------------------------------------------------
+# CameraFrameExporter tests
+# ---------------------------------------------------------------------------
+add_executable(test_camera_frame_exporter test_camera_frame_exporter.cpp)
+
+target_link_libraries(test_camera_frame_exporter PRIVATE
+  MwaAnalysis
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+)
+
+add_test(NAME test_camera_frame_exporter COMMAND test_camera_frame_exporter)
+
+# ---------------------------------------------------------------------------
 # SerialUtils tests (require Qt6::SerialPort)
 # ---------------------------------------------------------------------------
 if(TARGET Qt6::SerialPort)

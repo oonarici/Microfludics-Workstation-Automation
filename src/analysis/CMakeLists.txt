@@ -5,6 +5,8 @@ add_library(MwaAnalysis STATIC
   session_serializer.cpp
   vna_csv_exporter.h
   vna_csv_exporter.cpp
+  camera_frame_exporter.h
+  camera_frame_exporter.cpp
 )
 
 target_include_directories(MwaAnalysis PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)

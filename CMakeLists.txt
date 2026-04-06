@@ -14,7 +14,7 @@ set(CMAKE_AUTOUIC ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Find Qt6
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Test)
+find_package(Qt6 REQUIRED COMPONENTS Concurrent Core Gui Widgets Test)
 find_package(Qt6 OPTIONAL_COMPONENTS SerialPort)
 
 # Optional vendor SDKs (only available on specific platforms)

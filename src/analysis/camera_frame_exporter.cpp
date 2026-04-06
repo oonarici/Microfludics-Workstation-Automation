@@ -21,6 +21,27 @@ namespace mwa::analysis {
 QString CameraFrameExporter::last_error_;
 
 // ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+
+namespace {
+
+struct FormatStrings {
+  const char* extension;  ///< File extension, e.g. "png".
+  const char* qt_format;  ///< Qt image format id, e.g. "PNG".
+};
+
+FormatStrings formatStrings(ImageFormat fmt) noexcept {
+  switch (fmt) {
+    case ImageFormat::kPng:  return {"png",  "PNG"};
+    case ImageFormat::kTiff: return {"tiff", "TIFF"};
+  }
+  Q_UNREACHABLE();
+}
+
+}  // namespace
+
+// ---------------------------------------------------------------------------
 // exportToDir()
 // ---------------------------------------------------------------------------
 
@@ -34,9 +55,7 @@ bool CameraFrameExporter::exportToDir(const ExperimentSession& session,
     return false;
   }
 
-  const bool is_tiff = (format == ImageFormat::kTiff);
-  const char* const extension = is_tiff ? "tiff" : "png";
-  const char* const qt_format = is_tiff ? "TIFF" : "PNG";
+  const auto [extension, qt_format] = formatStrings(format);
 
   const QVector<CameraFrame>& frames = session.cameraFrames();
   for (int i = 0; i < frames.size(); ++i) {

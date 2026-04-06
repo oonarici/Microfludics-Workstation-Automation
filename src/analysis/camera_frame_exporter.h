@@ -4,7 +4,7 @@
  * @author MWA Team
  * @date 2026-04-05
  *
- * Provides CameraFrameExporter, a stateless utility class that writes every
+ * Provides CameraFrameExporter, a static utility class that writes every
  * CameraFrame stored in an ExperimentSession to a directory on disk as
  * numbered image files.
  *

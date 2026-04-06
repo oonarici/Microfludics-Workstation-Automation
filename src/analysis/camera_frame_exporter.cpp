@@ -28,16 +28,15 @@ bool CameraFrameExporter::exportToDir(const ExperimentSession& session,
                                        const QString& dir_path,
                                        ImageFormat format) {
   QDir dir(dir_path);
-  if (!dir.exists() && !dir.mkpath(QStringLiteral("."))) {
+  if (!dir.mkpath(QStringLiteral("."))) {
     last_error_ =
         QStringLiteral("Cannot create directory: ") + dir_path;
     return false;
   }
 
-  const char* const extension =
-      (format == ImageFormat::kTiff) ? "tiff" : "png";
-  const char* const qt_format =
-      (format == ImageFormat::kTiff) ? "TIFF" : "PNG";
+  const bool is_tiff = (format == ImageFormat::kTiff);
+  const char* const extension = is_tiff ? "tiff" : "png";
+  const char* const qt_format = is_tiff ? "TIFF" : "PNG";
 
   const QVector<CameraFrame>& frames = session.cameraFrames();
   for (int i = 0; i < frames.size(); ++i) {

@@ -46,7 +46,10 @@ AnalysisPanel::AnalysisPanel(QWidget* parent) : QWidget(parent) {
 
   setDataGroupsEnabled(false);
 
-  // Keyboard shortcuts (active when this panel or a child has focus)
+  export_watcher_ = new QFutureWatcher<bool>(this);
+  connect(export_watcher_, &QFutureWatcher<bool>::finished,
+          this, &AnalysisPanel::onExportFinished);
+
   auto* sc_load = new QShortcut(
       QKeySequence(QStringLiteral("Ctrl+O")), this,
       nullptr, nullptr, Qt::WidgetWithChildrenShortcut);
@@ -106,16 +109,14 @@ void AnalysisPanel::onLoadSessionClicked() {
     return;
   }
 
-  // Add to recents if not already present
-  if (!session_file_paths_.contains(file_path)) {
-    session_file_paths_.prepend(file_path);
-    cmb_session_->blockSignals(true);
-    cmb_session_->insertItem(0, QFileInfo(file_path).fileName());
-    cmb_session_->blockSignals(false);
+  {
+    QSignalBlocker blocker(cmb_session_);
+    if (!session_file_paths_.contains(file_path)) {
+      session_file_paths_.prepend(file_path);
+      cmb_session_->insertItem(0, QFileInfo(file_path).fileName());
+    }
+    cmb_session_->setCurrentIndex(session_file_paths_.indexOf(file_path));
   }
-  cmb_session_->blockSignals(true);
-  cmb_session_->setCurrentIndex(session_file_paths_.indexOf(file_path));
-  cmb_session_->blockSignals(false);
 
   populateFromSession();
 }
@@ -171,19 +172,13 @@ void AnalysisPanel::onExportFramesClicked() {
     return;
   }
 
-  const mwa::analysis::ImageFormat fmt =
-      (cmb_image_format_->currentIndex() == 1)
-          ? mwa::analysis::ImageFormat::kTiff
-          : mwa::analysis::ImageFormat::kPng;
+  const auto fmt = static_cast<mwa::analysis::ImageFormat>(
+      cmb_image_format_->currentData().toInt());
 
   setExportingState(true);
 
-  export_watcher_ = new QFutureWatcher<bool>(this);
-  connect(export_watcher_, &QFutureWatcher<bool>::finished,
-          this, &AnalysisPanel::onExportFinished);
-
-  // Capture raw pointer — session_ outlives the future because exporting
-  // state disables the Load button, preventing session replacement.
+  // session_ outlives the future: setExportingState(true) disables Load,
+  // preventing session replacement while export runs.
   const mwa::analysis::ExperimentSession* session_ptr = session_;
   export_watcher_->setFuture(
       QtConcurrent::run([session_ptr, dir, fmt]() {
@@ -219,18 +214,11 @@ void AnalysisPanel::onExportCsvClicked() {
     return;
   }
 
-  // Brief status confirmation via window's status bar if accessible
-  if (auto* status = qobject_cast<QStatusBar*>(
-          window()->findChild<QStatusBar*>())) {
-    status->showMessage(QStringLiteral("CSV export complete."), 3000);
-  }
+  showStatusMessage(QStringLiteral("CSV export complete."));
 }
 
 void AnalysisPanel::onExportFinished() {
   const bool ok = export_watcher_->result();
-  export_watcher_->deleteLater();
-  export_watcher_ = nullptr;
-
   setExportingState(false);
 
   if (!ok) {
@@ -239,10 +227,8 @@ void AnalysisPanel::onExportFinished() {
         QStringLiteral("Export Failed"),
         QStringLiteral("Could not export frames:\n") +
             mwa::analysis::CameraFrameExporter::lastError());
-  } else if (auto* status = qobject_cast<QStatusBar*>(
-                 window()->findChild<QStatusBar*>())) {
-    status->showMessage(
-        QStringLiteral("Frame export complete."), 3000);
+  } else {
+    showStatusMessage(QStringLiteral("Frame export complete."));
   }
 }
 
@@ -395,8 +381,10 @@ QGroupBox* AnalysisPanel::createExportGroup() {
 
   cmb_image_format_ = new QComboBox(grp_export_);
   cmb_image_format_->setObjectName(QStringLiteral("cmbImageFormat"));
-  cmb_image_format_->addItem(QStringLiteral("PNG"));
-  cmb_image_format_->addItem(QStringLiteral("TIFF"));
+  cmb_image_format_->addItem(QStringLiteral("PNG"),
+      static_cast<int>(mwa::analysis::ImageFormat::kPng));
+  cmb_image_format_->addItem(QStringLiteral("TIFF"),
+      static_cast<int>(mwa::analysis::ImageFormat::kTiff));
   cmb_image_format_->setMinimumSize(80, 32);
 
   btn_export_frames_ = new QPushButton(
@@ -445,34 +433,42 @@ void AnalysisPanel::populateFromSession() {
   selected_frame_  = -1;
 
   updateSessionInfo();
+  clearFrameDetail();
 
-  // Reset frame detail
-  lbl_frame_preview_->setPixmap(QPixmap{});
-  lbl_frame_preview_->setText(QStringLiteral("(click a thumbnail to preview)"));
-  lbl_frame_info_->setText(
-      QStringLiteral("Frame: \u2013 / \u2013 | Size: \u2013 \u00D7 \u2013"));
+  // Pre-scale all thumbnails once so rebuildThumbnailPage() never re-scales.
+  thumbnail_cache_.clear();
+  const int frame_count = session_->cameraFrameCount();
+  for (int i = 0; i < frame_count; ++i) {
+    const QImage& img = session_->cameraFrames().at(i).image;
+    thumbnail_cache_[i] = QPixmap::fromImage(
+        img.scaled(kThumbWidth, kThumbHeight,
+                   Qt::KeepAspectRatio,
+                   Qt::SmoothTransformation));
+  }
 
   rebuildThumbnailPage();
 
-  // Populate VNA table
   const auto& sweeps = session_->vnaMeasurements();
-  tbl_vna_sweeps_->setRowCount(sweeps.size());
-  for (int i = 0; i < sweeps.size(); ++i) {
-    const auto& s = sweeps[i];
-    tbl_vna_sweeps_->setItem(
-        i, 0, new QTableWidgetItem(QString::number(i)));
-    tbl_vna_sweeps_->setItem(
-        i, 1, new QTableWidgetItem(
-            QString::number(s.frequencies.size())));
-    tbl_vna_sweeps_->setItem(
-        i, 2, new QTableWidgetItem(
-            QString::number(s.start_frequency, 'f', 0)));
-    tbl_vna_sweeps_->setItem(
-        i, 3, new QTableWidgetItem(
-            QString::number(s.stop_frequency, 'f', 0)));
+  {
+    QSignalBlocker blocker(tbl_vna_sweeps_);
+    tbl_vna_sweeps_->setRowCount(0);
+    tbl_vna_sweeps_->setRowCount(sweeps.size());
+    for (int i = 0; i < sweeps.size(); ++i) {
+      const auto& s = sweeps[i];
+      tbl_vna_sweeps_->setItem(
+          i, 0, new QTableWidgetItem(QString::number(i)));
+      tbl_vna_sweeps_->setItem(
+          i, 1, new QTableWidgetItem(
+              QString::number(s.frequencies.size())));
+      tbl_vna_sweeps_->setItem(
+          i, 2, new QTableWidgetItem(
+              QString::number(s.start_frequency, 'f', 0)));
+      tbl_vna_sweeps_->setItem(
+          i, 3, new QTableWidgetItem(
+              QString::number(s.stop_frequency, 'f', 0)));
+    }
   }
 
-  // VNA summary
   if (sweeps.isEmpty()) {
     lbl_vna_summary_->setText(
         QStringLiteral("Sweeps: 0 | Freq range: \u2013"));
@@ -490,10 +486,9 @@ void AnalysisPanel::populateFromSession() {
 }
 
 void AnalysisPanel::rebuildThumbnailPage() {
-  // Remove all existing thumbnail buttons
   auto* strip_layout =
       qobject_cast<QHBoxLayout*>(wgt_thumbnail_strip_->layout());
-  while (strip_layout->count() > 1) {  // keep trailing stretch
+  while (strip_layout->count() > 1) {
     auto* item = strip_layout->takeAt(0);
     if (auto* widget = item->widget()) {
       widget->deleteLater();
@@ -506,20 +501,14 @@ void AnalysisPanel::rebuildThumbnailPage() {
   const int page_end    = qMin(page_start + kThumbsPerPage, frame_count);
 
   for (int i = page_start; i < page_end; ++i) {
-    const QImage& img = session_->cameraFrames().at(i).image;
-
     auto* btn = new QToolButton(wgt_thumbnail_strip_);
     btn->setObjectName(QStringLiteral("thumb%1").arg(i));
     btn->setFixedSize(kThumbWidth + 4, kThumbHeight + 20);
-    btn->setIcon(QIcon(QPixmap::fromImage(
-        img.scaled(kThumbWidth, kThumbHeight,
-                   Qt::KeepAspectRatio,
-                   Qt::SmoothTransformation))));
+    btn->setIcon(QIcon(thumbnail_cache_.value(i)));
     btn->setIconSize(QSize(kThumbWidth, kThumbHeight));
     btn->setText(QStringLiteral("frame_%1").arg(i, 4, 10, QLatin1Char('0')));
     btn->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
 
-    // Highlight if this frame is currently selected
     if (i == selected_frame_) {
       btn->setStyleSheet(
           QStringLiteral("QToolButton { border: 2px solid #3498DB; }"));
@@ -529,11 +518,9 @@ void AnalysisPanel::rebuildThumbnailPage() {
     connect(btn, &QToolButton::clicked,
             this, [this, index]() { onThumbnailClicked(index); });
 
-    // Insert before the trailing stretch
     strip_layout->insertWidget(strip_layout->count() - 1, btn);
   }
 
-  // Update pagination button state
   btn_prev_page_->setEnabled(current_page_ > 0);
   const int last_page =
       frame_count > 0 ? (frame_count - 1) / kThumbsPerPage : 0;
@@ -543,7 +530,6 @@ void AnalysisPanel::rebuildThumbnailPage() {
 void AnalysisPanel::selectFrame(int index) {
   const int frame_count = session_->cameraFrameCount();
 
-  // Clamp to valid range or -1
   if (index < 0 || frame_count == 0) {
     index = -1;
   } else if (index >= frame_count) {
@@ -553,12 +539,7 @@ void AnalysisPanel::selectFrame(int index) {
   selected_frame_ = index;
 
   if (index == -1) {
-    lbl_frame_preview_->setPixmap(QPixmap{});
-    lbl_frame_preview_->setText(
-        QStringLiteral("(click a thumbnail to preview)"));
-    lbl_frame_info_->setText(
-        QStringLiteral(
-            "Frame: \u2013 / \u2013 | Size: \u2013 \u00D7 \u2013"));
+    clearFrameDetail();
   } else {
     const QImage& img = session_->cameraFrames().at(index).image;
     lbl_frame_preview_->setText(QString{});
@@ -573,7 +554,6 @@ void AnalysisPanel::selectFrame(int index) {
             .arg(img.width())
             .arg(img.height()));
 
-    // If the frame is not on the current page, navigate there
     const int target_page = index / kThumbsPerPage;
     if (target_page != current_page_) {
       current_page_ = target_page;
@@ -609,6 +589,19 @@ void AnalysisPanel::updateSessionInfo() {
           .arg(session_->cameraFrameCount())
           .arg(session_->vnaMeasurementCount())
           .arg(saved_str));
+}
+
+void AnalysisPanel::clearFrameDetail() {
+  lbl_frame_preview_->setPixmap(QPixmap{});
+  lbl_frame_preview_->setText(QStringLiteral("(click a thumbnail to preview)"));
+  lbl_frame_info_->setText(
+      QStringLiteral("Frame: \u2013 / \u2013 | Size: \u2013 \u00D7 \u2013"));
+}
+
+void AnalysisPanel::showStatusMessage(const QString& msg, int msec) {
+  if (auto* status = window()->findChild<QStatusBar*>()) {
+    status->showMessage(msg, msec);
+  }
 }
 
 }  // namespace mwa::gui

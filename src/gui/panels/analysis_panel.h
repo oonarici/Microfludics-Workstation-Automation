@@ -19,6 +19,8 @@
 #include <QGroupBox>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QMap>
+#include <QPixmap>
 #include <QProgressBar>
 #include <QPushButton>
 #include <QScrollArea>
@@ -204,6 +206,21 @@ class AnalysisPanel : public QWidget {
    */
   void updateSessionInfo();
 
+  /**
+   * @brief Reset the Frame Detail group to the "no frame selected" state.
+   */
+  void clearFrameDetail();
+
+  /**
+   * @brief Show @p msg in the parent window's status bar for @p msec ms.
+   *
+   * Does nothing if the parent window has no QStatusBar.
+   *
+   * @param msg  Message to display.
+   * @param msec Duration in milliseconds (default 3000).
+   */
+  void showStatusMessage(const QString& msg, int msec = 3000);
+
   // ---- Session group -------------------------------------------------------
   QGroupBox*   grp_session_{nullptr};       ///< Session section.
   QComboBox*   cmb_session_{nullptr};       ///< Recent sessions selector.
@@ -246,6 +263,9 @@ class AnalysisPanel : public QWidget {
 
   /// File paths parallel to cmb_session_ items (for re-loading).
   QStringList session_file_paths_;
+
+  /// Cached scaled thumbnails keyed by frame index; populated on session load.
+  QMap<int, QPixmap> thumbnail_cache_;
 
   /// Watcher for the asynchronous frame export future.
   QFutureWatcher<bool>* export_watcher_{nullptr};

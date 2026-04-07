@@ -18,8 +18,10 @@
 #include <QCloseEvent>
 #include <QDockWidget>
 #include <QLabel>
+#include <QList>
 #include <QMainWindow>
 #include <QMenu>
+#include <QMetaObject>
 #include <QStackedWidget>
 #include <QToolBar>
 
@@ -34,6 +36,11 @@ class CameraPanel;
 class StagePanel;
 class AnalysisPanel;
 }  // namespace mwa::gui
+
+// Forward declaration for session data model
+namespace mwa::analysis {
+class ExperimentSession;
+}  // namespace mwa::analysis
 
 // Forward declarations for device controller interfaces
 namespace mwa::hardware {
@@ -121,6 +128,43 @@ class MainWindow : public QMainWindow {
    */
   void onActionAbout();
 
+  /**
+   * @brief Handle Experiment > Start action (F5).
+   *
+   * Opens NewSessionDialog. On acceptance, creates an ExperimentSession,
+   * wires all device telemetry signals into it, and begins recording.
+   */
+  void onActionStartExperiment();
+
+  /**
+   * @brief Handle Experiment > Stop action (F6).
+   *
+   * Disconnects recording signals, ends the active session, and prompts
+   * the user to save the session to a JSON file.
+   */
+  void onActionStopExperiment();
+
+  /**
+   * @brief Update UI to reflect a recording session has started.
+   *
+   * @param name The session name passed to ExperimentSession::start().
+   */
+  void onSessionStarted(const QString& name);
+
+  /**
+   * @brief Update UI to reflect the active session has ended.
+   */
+  void onSessionEnded();
+
+  /**
+   * @brief Forward a completed VNA sweep into the active session.
+   *
+   * Called when NetworkAnalyzerControllerInterface::measurementComplete()
+   * fires. Reads trace data from the controller and calls
+   * ExperimentSession::addVnaMeasurement().
+   */
+  void onVnaMeasurementComplete();
+
  private:
   // ---- Setup helpers (called once from constructor) ----
 
@@ -173,6 +217,35 @@ class MainWindow : public QMainWindow {
    * @brief Persist window geometry and dock state via SettingsManager.
    */
   void saveSettings();
+
+  /**
+   * @brief Wire all device telemetry signals into the active session.
+   *
+   * Stores each connection in recording_connections_ so they can be
+   * cleanly disconnected by disconnectRecordingSignals().
+   *
+   * @pre active_session_ must be non-null and active.
+   */
+  void connectRecordingSignals();
+
+  /**
+   * @brief Disconnect all device-to-session telemetry connections.
+   *
+   * Disconnects every connection stored in recording_connections_ and
+   * clears the list.
+   */
+  void disconnectRecordingSignals();
+
+  /**
+   * @brief Prompt the user to save the just-ended session to a JSON file.
+   *
+   * Shows a Save/Discard dialog. If the user chooses Save, opens a file
+   * dialog and writes the session via SessionSerializer. Persists the
+   * chosen path to SettingsManager.
+   *
+   * @pre active_session_ must be non-null and ended (not active).
+   */
+  void promptSaveSession();
 
   // ---- Actions ----
 
@@ -243,7 +316,14 @@ class MainWindow : public QMainWindow {
   // Status bar labels (owned by the status bar via addWidget)
   QLabel* lbl_device_summary_{nullptr};
   QLabel* lbl_last_event_{nullptr};
+  QLabel* lbl_recording_indicator_{nullptr};
   QLabel* lbl_version_{nullptr};
+
+  // Session recording state
+  /// Active experiment session; null when not recording.
+  mwa::analysis::ExperimentSession* active_session_{nullptr};
+  /// Device-to-session signal connections active during recording.
+  QList<QMetaObject::Connection> recording_connections_;
 };
 
 }  // namespace mwa::app

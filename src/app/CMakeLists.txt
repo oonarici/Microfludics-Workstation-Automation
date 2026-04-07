@@ -6,7 +6,9 @@ add_library(MwaApp STATIC
 target_include_directories(MwaApp PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 target_link_libraries(MwaApp PUBLIC
+  MwaAnalysis
   MwaCore
+  MwaDialogs
   MwaGui
   MwaPanels
   Qt6::Core

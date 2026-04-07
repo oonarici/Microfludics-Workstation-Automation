@@ -10,13 +10,17 @@ add_library(MwaPanels STATIC
   camera_panel.cpp
   stage_panel.h
   stage_panel.cpp
+  analysis_panel.h
+  analysis_panel.cpp
 )
 
 target_include_directories(MwaPanels PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 
 target_link_libraries(MwaPanels PUBLIC
+  MwaAnalysis
   MwaCore
   MwaHardware
+  Qt6::Concurrent
   Qt6::Core
   Qt6::Gui
   Qt6::Widgets

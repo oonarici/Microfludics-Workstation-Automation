@@ -389,6 +389,22 @@ target_link_libraries(test_camera_frame_exporter PRIVATE
 add_test(NAME test_camera_frame_exporter COMMAND test_camera_frame_exporter)
 
 # ---------------------------------------------------------------------------
+# AnalysisPanel tests
+# ---------------------------------------------------------------------------
+add_executable(test_analysis_panel test_analysis_panel.cpp)
+
+target_link_libraries(test_analysis_panel PRIVATE
+  MwaAnalysis
+  MwaPanels
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Test
+  Qt6::Widgets
+)
+
+add_test(NAME test_analysis_panel COMMAND test_analysis_panel)
+
+# ---------------------------------------------------------------------------
 # SerialUtils tests (require Qt6::SerialPort)
 # ---------------------------------------------------------------------------
 if(TARGET Qt6::SerialPort)

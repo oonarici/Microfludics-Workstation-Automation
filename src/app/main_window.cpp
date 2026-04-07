@@ -21,6 +21,7 @@
 #include <QVBoxLayout>
 
 #include "core/settings_manager.h"
+#include "gui/panels/analysis_panel.h"
 #include "gui/panels/camera_panel.h"
 #include "gui/panels/led_panel.h"
 #include "gui/panels/pump_panel.h"
@@ -133,6 +134,13 @@ void MainWindow::createActions() {
       QStringLiteral("actionToggleBottomDock"));
   action_toggle_bottom_dock_->setCheckable(true);
   action_toggle_bottom_dock_->setChecked(true);
+
+  action_toggle_analysis_panel_ =
+      new QAction(QStringLiteral("&Analysis Panel"), this);
+  action_toggle_analysis_panel_->setObjectName(
+      QStringLiteral("actionToggleAnalysisPanel"));
+  action_toggle_analysis_panel_->setCheckable(true);
+  action_toggle_analysis_panel_->setChecked(true);
 
   action_toggle_toolbar_ =
       new QAction(QStringLiteral("&Toolbar"), this);
@@ -259,6 +267,7 @@ void MainWindow::createMenus() {
   menu_view->setObjectName(QStringLiteral("menuView"));
   menu_view->addAction(action_toggle_left_dock_);
   menu_view->addAction(action_toggle_bottom_dock_);
+  menu_view->addAction(action_toggle_analysis_panel_);
   menu_view->addSeparator();
   menu_view->addAction(action_toggle_toolbar_);
   menu_view->addAction(action_toggle_status_bar_);
@@ -440,6 +449,24 @@ void MainWindow::createDevicePanels() {
       QStringLiteral("XYZ Stage"),
       QStringLiteral("dockStagePanel"), stage_panel_);
 
+  // Analysis panel — right dock area, allows Left/Right/Bottom
+  analysis_panel_ = new mwa::gui::AnalysisPanel(this);
+  dock_analysis_panel_ = new QDockWidget(
+      QStringLiteral("Analysis"), this);
+  dock_analysis_panel_->setObjectName(
+      QStringLiteral("dockAnalysisPanel"));
+  dock_analysis_panel_->setFeatures(
+      QDockWidget::DockWidgetClosable  |
+      QDockWidget::DockWidgetMovable   |
+      QDockWidget::DockWidgetFloatable);
+  dock_analysis_panel_->setAllowedAreas(
+      Qt::LeftDockWidgetArea  |
+      Qt::RightDockWidgetArea |
+      Qt::BottomDockWidgetArea);
+  dock_analysis_panel_->setMinimumWidth(320);
+  dock_analysis_panel_->setWidget(analysis_panel_);
+  addDockWidget(Qt::RightDockWidgetArea, dock_analysis_panel_);
+
   // Tab the device panels together in the left dock area
   tabifyDockWidget(dock_device_panels_, dock_led_panel_);
   tabifyDockWidget(dock_led_panel_, dock_pump_panel_);
@@ -488,6 +515,12 @@ void MainWindow::connectSignals() {
           dock_log_panel_, &QDockWidget::setVisible);
   connect(dock_log_panel_, &QDockWidget::visibilityChanged,
           action_toggle_bottom_dock_, &QAction::setChecked);
+
+  // View menu — toggle analysis panel (bidirectional)
+  connect(action_toggle_analysis_panel_, &QAction::toggled,
+          dock_analysis_panel_, &QDockWidget::setVisible);
+  connect(dock_analysis_panel_, &QDockWidget::visibilityChanged,
+          action_toggle_analysis_panel_, &QAction::setChecked);
 
   // View menu — toggle toolbar (bidirectional)
   connect(action_toggle_toolbar_, &QAction::toggled,

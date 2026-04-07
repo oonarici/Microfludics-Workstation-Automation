@@ -32,6 +32,7 @@ class PumpPanel;
 class SignalPanel;
 class CameraPanel;
 class StagePanel;
+class AnalysisPanel;
 }  // namespace mwa::gui
 
 // Forward declarations for device controller interfaces
@@ -181,6 +182,7 @@ class MainWindow : public QMainWindow {
   // View menu
   QAction* action_toggle_left_dock_{nullptr};
   QAction* action_toggle_bottom_dock_{nullptr};
+  QAction* action_toggle_analysis_panel_{nullptr};
   QAction* action_toggle_toolbar_{nullptr};
   QAction* action_toggle_status_bar_{nullptr};
 
@@ -218,6 +220,7 @@ class MainWindow : public QMainWindow {
   QDockWidget* dock_signal_panel_{nullptr};
   QDockWidget* dock_camera_panel_{nullptr};
   QDockWidget* dock_stage_panel_{nullptr};
+  QDockWidget* dock_analysis_panel_{nullptr};
 
   // Device panels (owned by their dock widgets)
   mwa::gui::LedPanel* led_panel_{nullptr};
@@ -225,6 +228,7 @@ class MainWindow : public QMainWindow {
   mwa::gui::SignalPanel* signal_panel_{nullptr};
   mwa::gui::CameraPanel* camera_panel_{nullptr};
   mwa::gui::StagePanel* stage_panel_{nullptr};
+  mwa::gui::AnalysisPanel* analysis_panel_{nullptr};
 
   // Device controllers (owned by this window; currently mock implementations)
   mwa::hardware::LedControllerInterface* led_controller_{nullptr};

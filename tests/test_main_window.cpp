@@ -82,10 +82,14 @@ class TestMainWindow : public QObject {
   void test_actionNewExperiment_isDisabled();
   void test_actionOpenExperiment_isDisabled();
   void test_actionSaveExperiment_isDisabled();
-  void test_actionStartExperiment_isDisabled();
   void test_actionStopExperiment_isDisabled();
   void test_actionPreferences_isDisabled();
   void test_actionExportLog_isDisabled();
+
+  // --- Recording control initial state ---
+  void test_actionStartExperiment_isEnabled();
+  void test_lblRecordingIndicator_exists();
+  void test_lblRecordingIndicator_isInitiallyHidden();
 
   // --- View toggle actions: enabled, checkable, and initially checked ---
   void test_actionToggleLeftDock_isEnabled();
@@ -352,13 +356,6 @@ void TestMainWindow::test_actionSaveExperiment_isDisabled() {
   QVERIFY(action != nullptr);
   QVERIFY2(!action->isEnabled(),
            "actionSaveExperiment must be disabled (placeholder)");
-}
-
-void TestMainWindow::test_actionStartExperiment_isDisabled() {
-  auto* action = window_->findChild<QAction*>("actionStartExperiment");
-  QVERIFY(action != nullptr);
-  QVERIFY2(!action->isEnabled(),
-           "actionStartExperiment must be disabled (placeholder)");
 }
 
 void TestMainWindow::test_actionStopExperiment_isDisabled() {
@@ -764,6 +761,30 @@ void TestMainWindow::test_toggleToolbar_falseThentrue_showsToolbarAgain() {
   QVERIFY2(!tb->isHidden(),
            "mainToolbar must not be hidden after actionToggleToolbar "
            "is re-checked");
+}
+
+// ===========================================================================
+// Recording control initial state
+// ===========================================================================
+
+void TestMainWindow::test_actionStartExperiment_isEnabled() {
+  auto* action = window_->findChild<QAction*>("actionStartExperiment");
+  QVERIFY(action != nullptr);
+  QVERIFY2(action->isEnabled(),
+           "actionStartExperiment must be enabled on construction "
+           "(recording is always available)");
+}
+
+void TestMainWindow::test_lblRecordingIndicator_exists() {
+  auto* lbl = window_->findChild<QLabel*>("lblRecordingIndicator");
+  QVERIFY2(lbl != nullptr, "lblRecordingIndicator must exist in status bar");
+}
+
+void TestMainWindow::test_lblRecordingIndicator_isInitiallyHidden() {
+  auto* lbl = window_->findChild<QLabel*>("lblRecordingIndicator");
+  QVERIFY(lbl != nullptr);
+  QVERIFY2(lbl->isHidden(),
+           "lblRecordingIndicator must be hidden when no session is active");
 }
 
 // ===========================================================================

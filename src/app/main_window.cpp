@@ -14,13 +14,25 @@
 #include "app/main_window.h"
 
 #include <QApplication>
+#include <QDir>
+#include <QFileDialog>
+#include <QFileInfo>
 #include <QKeySequence>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QStatusBar>
 #include <QVBoxLayout>
 
+#include "analysis/experiment_session.h"
+#include "analysis/session_serializer.h"
 #include "core/settings_manager.h"
+#include "gui/dialogs/new_session_dialog.h"
+#include "hardware/camera/camera_controller_interface.h"
+#include "hardware/led/led_controller_interface.h"
+#include "hardware/network_analyzer/network_analyzer_controller_interface.h"
+#include "hardware/pump/pump_controller_interface.h"
+#include "hardware/signal_generator/signal_generator_controller_interface.h"
+#include "hardware/stage/stage_controller_interface.h"
 #include "gui/panels/analysis_panel.h"
 #include "gui/panels/camera_panel.h"
 #include "gui/panels/led_panel.h"
@@ -77,6 +89,31 @@ MainWindow::~MainWindow() = default;
 // ---- closeEvent -------------------------------------------------------
 
 void MainWindow::closeEvent(QCloseEvent* event) {
+  if (active_session_ && active_session_->isActive()) {
+    QMessageBox msgbox(this);
+    msgbox.setWindowTitle(QStringLiteral("Recording In Progress"));
+    msgbox.setText(
+        QStringLiteral(
+            "A session is currently recording.\n"
+            "Stop recording and close?"));
+    msgbox.setIcon(QMessageBox::Warning);
+    auto* btn_stop = msgbox.addButton(
+        QStringLiteral("Stop && Close"), QMessageBox::AcceptRole);
+    msgbox.addButton(QMessageBox::Cancel);
+    msgbox.setDefaultButton(btn_stop);
+    msgbox.exec();
+
+    if (msgbox.clickedButton() != btn_stop) {
+      event->ignore();
+      return;
+    }
+
+    disconnectRecordingSignals();
+    active_session_->end();
+    active_session_->deleteLater();
+    active_session_ = nullptr;
+  }
+
   saveSettings();
   event->accept();
 }
@@ -220,7 +257,7 @@ void MainWindow::createActions() {
   action_start_experiment_->setShortcut(QKeySequence(Qt::Key_F5));
   action_start_experiment_->setToolTip(
       QStringLiteral("Start Experiment (F5)"));
-  action_start_experiment_->setEnabled(false);
+  action_start_experiment_->setEnabled(true);
 
   action_stop_experiment_ =
       new QAction(QStringLiteral("S&top"), this);
@@ -489,11 +526,20 @@ void MainWindow::createStatusBar() {
       QStringLiteral("Last event: Application started"));
   lbl_last_event_->setObjectName(QStringLiteral("lblLastEvent"));
 
+  lbl_recording_indicator_ = new QLabel(this);
+  lbl_recording_indicator_->setObjectName(
+      QStringLiteral("lblRecordingIndicator"));
+  lbl_recording_indicator_->setStyleSheet(
+      QStringLiteral(
+          "color: #E74C3C; font-weight: bold; padding: 0 8px;"));
+  lbl_recording_indicator_->setVisible(false);
+
   lbl_version_ = new QLabel(QStringLiteral("MWA v0.1.0"));
   lbl_version_->setObjectName(QStringLiteral("lblVersion"));
 
   statusBar()->addWidget(lbl_device_summary_);
   statusBar()->addWidget(lbl_last_event_, 1);
+  statusBar()->addPermanentWidget(lbl_recording_indicator_);
   statusBar()->addPermanentWidget(lbl_version_);
 }
 
@@ -541,6 +587,12 @@ void MainWindow::connectSignals() {
   // Logger integration — update last-event label
   connect(&mwa::core::Logger::instance(), &mwa::core::Logger::newLogEntry,
           this, &MainWindow::onNewLogEntry);
+
+  // Experiment recording
+  connect(action_start_experiment_, &QAction::triggered,
+          this, &MainWindow::onActionStartExperiment);
+  connect(action_stop_experiment_, &QAction::triggered,
+          this, &MainWindow::onActionStopExperiment);
 }
 
 // ---- restoreSettings --------------------------------------------------
@@ -586,6 +638,172 @@ void MainWindow::saveSettings() {
   settings.setValue(grp, QLatin1String(kKeyStatusBarVisible),
                     statusBar()->isVisible());
 
+  settings.saveAll();
+}
+
+// ---- Session recording slots ------------------------------------------
+
+void MainWindow::onActionStartExperiment() {
+  mwa::gui::NewSessionDialog dialog(this);
+  if (dialog.exec() != QDialog::Accepted) {
+    return;
+  }
+
+  active_session_ = new mwa::analysis::ExperimentSession(this);
+  connect(active_session_,
+          &mwa::analysis::ExperimentSession::sessionStarted,
+          this, &MainWindow::onSessionStarted);
+  connect(active_session_,
+          &mwa::analysis::ExperimentSession::sessionEnded,
+          this, &MainWindow::onSessionEnded);
+
+  active_session_->start(dialog.name(), dialog.description());
+  connectRecordingSignals();
+}
+
+void MainWindow::onActionStopExperiment() {
+  disconnectRecordingSignals();
+  active_session_->end();
+  promptSaveSession();
+  active_session_->deleteLater();
+  active_session_ = nullptr;
+}
+
+void MainWindow::onSessionStarted(const QString& name) {
+  action_start_experiment_->setEnabled(false);
+  action_stop_experiment_->setEnabled(true);
+  lbl_recording_indicator_->setText(
+      QStringLiteral("\u25cf REC  ") + name);
+  lbl_recording_indicator_->setVisible(true);
+}
+
+void MainWindow::onSessionEnded() {
+  action_start_experiment_->setEnabled(true);
+  action_stop_experiment_->setEnabled(false);
+  lbl_recording_indicator_->setVisible(false);
+}
+
+void MainWindow::onVnaMeasurementComplete() {
+  active_session_->addVnaMeasurement(
+      net_analyzer_controller_->startFrequency(),
+      net_analyzer_controller_->stopFrequency(),
+      net_analyzer_controller_->numPoints(),
+      net_analyzer_controller_->traceFrequencies(),
+      net_analyzer_controller_->traceMagnitudes());
+}
+
+// ---- Recording signal management --------------------------------------
+
+void MainWindow::connectRecordingSignals() {
+  auto* s = active_session_;
+
+  recording_connections_ << connect(
+      led_controller_,
+      &mwa::hardware::LedControllerInterface::intensityChanged,
+      this, [this, s](double percent) {
+        s->addLedSample(led_controller_->isPowerOn(), percent);
+      });
+  recording_connections_ << connect(
+      led_controller_,
+      &mwa::hardware::LedControllerInterface::powerStateChanged,
+      this, [this, s](bool on) {
+        s->addLedSample(on, led_controller_->intensity());
+      });
+  recording_connections_ << connect(
+      pump_controller_,
+      &mwa::hardware::PumpControllerInterface::positionChanged,
+      this, [this, s](double uL) {
+        s->addPumpSample(uL, pump_controller_->flowRate());
+      });
+  recording_connections_ << connect(
+      sig_gen_controller_,
+      &mwa::hardware::SignalGeneratorControllerInterface::frequencyChanged,
+      this, [this, s](double hz) {
+        s->addSigGenSample(hz, sig_gen_controller_->amplitude());
+      });
+  recording_connections_ << connect(
+      camera_controller_,
+      &mwa::hardware::CameraControllerInterface::frameReady,
+      s, &mwa::analysis::ExperimentSession::addCameraFrame);
+  recording_connections_ << connect(
+      stage_controller_,
+      &mwa::hardware::StageControllerInterface::positionChanged,
+      s, &mwa::analysis::ExperimentSession::addStageSample);
+  recording_connections_ << connect(
+      net_analyzer_controller_,
+      &mwa::hardware::NetworkAnalyzerControllerInterface::measurementComplete,
+      this, &MainWindow::onVnaMeasurementComplete);
+}
+
+void MainWindow::disconnectRecordingSignals() {
+  for (const auto& conn : recording_connections_) {
+    disconnect(conn);
+  }
+  recording_connections_.clear();
+}
+
+// ---- Save prompt ------------------------------------------------------
+
+void MainWindow::promptSaveSession() {
+  QMessageBox msgbox(this);
+  msgbox.setWindowTitle(QStringLiteral("Save Session"));
+  msgbox.setText(
+      QStringLiteral("Session \"%1\" has ended.\nSave to file?")
+          .arg(active_session_->name()));
+  msgbox.setIcon(QMessageBox::Question);
+  auto* btn_save =
+      msgbox.addButton(QStringLiteral("Save\u2026"), QMessageBox::AcceptRole);
+  auto* btn_discard =
+      msgbox.addButton(QStringLiteral("Discard"), QMessageBox::DestructiveRole);
+  msgbox.setDefaultButton(btn_save);
+  msgbox.exec();
+
+  if (msgbox.clickedButton() != btn_save) {
+    Q_UNUSED(btn_discard)
+    return;
+  }
+
+  const QString safe_name =
+      active_session_->name().simplified()
+          .replace(QLatin1Char(' '), QLatin1Char('_'));
+  const QString date_str =
+      active_session_->startTime().toString(
+          QStringLiteral("yyyy-MM-dd"));
+  const QString default_name =
+      safe_name + QLatin1Char('_') + date_str +
+      QStringLiteral(".json");
+
+  auto& settings = mwa::core::SettingsManager::instance();
+  const QString last_path =
+      settings.value(QStringLiteral("Session"),
+                     QStringLiteral("lastFilePath")).toString();
+  const QString start_dir =
+      last_path.isEmpty()
+          ? QDir::homePath()
+          : QFileInfo(last_path).absoluteDir().absolutePath();
+
+  const QString path = QFileDialog::getSaveFileName(
+      this,
+      QStringLiteral("Save Session"),
+      start_dir + QDir::separator() + default_name,
+      QStringLiteral("MWA Session (*.json)"));
+
+  if (path.isEmpty()) {
+    return;
+  }
+
+  if (!mwa::analysis::SessionSerializer::save(*active_session_, path)) {
+    QMessageBox::warning(
+        this,
+        QStringLiteral("Save Failed"),
+        QStringLiteral("Could not write session file:\n%1\n\n%2")
+            .arg(path,
+                 mwa::analysis::SessionSerializer::lastError()));
+    return;
+  }
+
+  settings.setValue(QStringLiteral("Session"),
+                    QStringLiteral("lastFilePath"), path);
   settings.saveAll();
 }
 

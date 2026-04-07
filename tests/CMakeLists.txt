@@ -389,6 +389,21 @@ target_link_libraries(test_camera_frame_exporter PRIVATE
 add_test(NAME test_camera_frame_exporter COMMAND test_camera_frame_exporter)
 
 # ---------------------------------------------------------------------------
+# NewSessionDialog tests
+# ---------------------------------------------------------------------------
+add_executable(test_new_session_dialog test_new_session_dialog.cpp)
+
+target_link_libraries(test_new_session_dialog PRIVATE
+  MwaDialogs
+  Qt6::Core
+  Qt6::Gui
+  Qt6::Widgets
+  Qt6::Test
+)
+
+add_test(NAME test_new_session_dialog COMMAND test_new_session_dialog)
+
+# ---------------------------------------------------------------------------
 # AnalysisPanel tests
 # ---------------------------------------------------------------------------
 add_executable(test_analysis_panel test_analysis_panel.cpp)

@@ -15,6 +15,7 @@
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QMessageBox>
+#include <QMainWindow>
 #include <QScrollBar>
 #include <QShortcut>
 #include <QStatusBar>
@@ -488,7 +489,11 @@ void AnalysisPanel::populateFromSession() {
 void AnalysisPanel::rebuildThumbnailPage() {
   auto* strip_layout =
       qobject_cast<QHBoxLayout*>(wgt_thumbnail_strip_->layout());
-  while (strip_layout->count() > 1) {
+
+  // Remove every item (including the trailing stretch) so the strip is
+  // rebuilt from scratch.  Removing all items avoids fragile assumptions
+  // about the stretch's position if future changes reorder the layout.
+  while (strip_layout->count() > 0) {
     auto* item = strip_layout->takeAt(0);
     if (auto* widget = item->widget()) {
       widget->deleteLater();
@@ -518,8 +523,11 @@ void AnalysisPanel::rebuildThumbnailPage() {
     connect(btn, &QToolButton::clicked,
             this, [this, index]() { onThumbnailClicked(index); });
 
-    strip_layout->insertWidget(strip_layout->count() - 1, btn);
+    strip_layout->addWidget(btn);
   }
+
+  // Re-add the trailing stretch that pushes thumbs to the left.
+  strip_layout->addStretch();
 
   btn_prev_page_->setEnabled(current_page_ > 0);
   const int last_page =
@@ -554,10 +562,7 @@ void AnalysisPanel::selectFrame(int index) {
             .arg(img.width())
             .arg(img.height()));
 
-    const int target_page = index / kThumbsPerPage;
-    if (target_page != current_page_) {
-      current_page_ = target_page;
-    }
+    current_page_ = index / kThumbsPerPage;
   }
 
   rebuildThumbnailPage();
@@ -599,8 +604,8 @@ void AnalysisPanel::clearFrameDetail() {
 }
 
 void AnalysisPanel::showStatusMessage(const QString& msg, int msec) {
-  if (auto* status = window()->findChild<QStatusBar*>()) {
-    status->showMessage(msg, msec);
+  if (auto* mw = qobject_cast<QMainWindow*>(window())) {
+    mw->statusBar()->showMessage(msg, msec);
   }
 }
 

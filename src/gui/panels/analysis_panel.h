@@ -199,7 +199,7 @@ class AnalysisPanel : public QWidget {
    *
    * @param exporting true when export is in progress.
    */
-  void setExportingState(bool exporting);
+  Q_INVOKABLE void setExportingState(bool exporting);
 
   /**
    * @brief Update the session info label from the loaded session metadata.

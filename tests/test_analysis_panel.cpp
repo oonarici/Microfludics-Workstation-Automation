@@ -350,6 +350,58 @@ class TestAnalysisPanel : public QObject {
   }
 
   // -------------------------------------------------------------------------
+  // setExportingState: UI reflects exporting / idle state correctly
+  // -------------------------------------------------------------------------
+
+  void setExportingState_true_disablesLoadAndShowsProgressBar() {
+    AnalysisPanel panel;
+
+    QMetaObject::invokeMethod(
+        &panel, "setExportingState", Qt::DirectConnection,
+        Q_ARG(bool, true));
+
+    // btn_load and cmb_session live in the always-enabled Session group,
+    // so their enabled state reflects setExportingState() directly.
+    // Export buttons live in grp_export_ which starts disabled (no session),
+    // so Qt propagates the parent-disabled state — tested separately below.
+    auto* btn_load  = panel.findChild<QPushButton*>(
+        QStringLiteral("btnLoadSession"));
+    auto* cmb_sess  = panel.findChild<QComboBox*>(
+        QStringLiteral("cmbSession"));
+    auto* prg       = panel.findChild<QProgressBar*>(
+        QStringLiteral("prgExport"));
+
+    QVERIFY(!btn_load->isEnabled());
+    QVERIFY(!cmb_sess->isEnabled());
+    // isHidden() reflects the widget's own hidden flag independently of
+    // whether the panel itself has been shown (avoids needing show()).
+    QVERIFY(!prg->isHidden());
+  }
+
+  void setExportingState_false_restoresLoadAndHidesProgressBar() {
+    AnalysisPanel panel;
+
+    // Set exporting, then clear it.
+    QMetaObject::invokeMethod(
+        &panel, "setExportingState", Qt::DirectConnection,
+        Q_ARG(bool, true));
+    QMetaObject::invokeMethod(
+        &panel, "setExportingState", Qt::DirectConnection,
+        Q_ARG(bool, false));
+
+    auto* btn_load = panel.findChild<QPushButton*>(
+        QStringLiteral("btnLoadSession"));
+    auto* cmb_sess = panel.findChild<QComboBox*>(
+        QStringLiteral("cmbSession"));
+    auto* prg      = panel.findChild<QProgressBar*>(
+        QStringLiteral("prgExport"));
+
+    QVERIFY(btn_load->isEnabled());
+    QVERIFY(cmb_sess->isEnabled());
+    QVERIFY(prg->isHidden());
+  }
+
+  // -------------------------------------------------------------------------
   // Object names: all key widgets have objectNames set (for testability)
   // -------------------------------------------------------------------------
 
